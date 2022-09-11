@@ -28,7 +28,7 @@ std::string time_string(double time, int precision)
     if (std::isnan(time) || std::isinf(time))
         return "inf";
 
-    int seconds = time / 1000;
+    int seconds = int(time) / 1000;
     int minutes = seconds / 60;
     int hours   = minutes / 60;
     int days    = hours / 24;

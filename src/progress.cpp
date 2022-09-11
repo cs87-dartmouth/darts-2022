@@ -168,7 +168,7 @@ Progress::Progress(const string &title, int64_t totalWork) : m_title(title), m_n
 
                         double bounce          = (1. - cos(-elp / m_num_steps * M_PI * 2)) * 0.5;
                         int    fill_width      = std::min(bar_width, done ? bar_width : default_fill_width);
-                        int    left_padding    = round(bounce * (bar_width - fill_width));
+                        int    left_padding    = int(round(bounce * (bar_width - fill_width)));
                         int    remaining_width = screen_width - title_width - 2 - bar_width - 1;
 
                         string time_text = fmt::format(" ({})", time_string(elp));
@@ -177,9 +177,9 @@ Progress::Progress(const string &title, int64_t totalWork) : m_title(title), m_n
                     }
                     else
                     {
-                        int    whole_width     = std::floor(fraction * bar_width);
-                        float  remainder_width = fmod((fraction * bar_width), 1.0f);
-                        int    part_width      = std::floor(remainder_width * fractional_characters.size());
+                        int    whole_width     = int(std::floor(fraction * bar_width));
+                        float  remainder_width = std::fmod((fraction * bar_width), 1.0f);
+                        int    part_width      = int(std::floor(remainder_width * fractional_characters.size()));
                         auto   frac_text       = fractional_characters[part_width];
                         double eta             = elp / fraction - elp;
                         int    remaining_width = screen_width - title_width - 2 - bar_width - 1 - 5;
