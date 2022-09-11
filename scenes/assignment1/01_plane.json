@@ -1,0 +1,45 @@
+{
+    "camera": {
+        "transform": {
+            "o": [0, 0, 4]
+        },
+        "vfov": 45,
+        "resolution": [640, 480]
+    },
+    "sampler": {
+        "type": "independent",
+        "samples": 100
+    },
+    "background": [
+        1, 1, 1
+    ],
+    "surfaces": [
+        {
+            "type": "sphere",
+            "radius": 1,
+            "material": {
+                "type": "lambertian",
+                "albedo": [0.6, 0.4, 0.4]
+            }
+        }, {
+            "type": "quad",
+            "transform": {
+                "o": [
+                    0, -1, 0
+                ],
+                "x": [
+                    1, 0, 0
+                ],
+                "y": [
+                    0, 0, -1
+                ],
+                "z": [0, 1, 0]
+            },
+            "size": 100,
+            "material": {
+                "type": "lambertian",
+                "albedo": [0.75, 0.75, 0.75]
+            }
+        }
+    ]
+}

@@ -1,0 +1,100 @@
+{
+    "camera": {
+        "transform": {
+            "from": [
+                20, 20, 50
+            ],
+            "at": [
+                0, 4, 0
+            ],
+            "up": [0, 1, 0]
+        },
+        "vfov": 20,
+        "fdist": 800,
+        "resolution": [768, 432]
+    },
+    "sampler": {
+        "type": "independent",
+        "samples": 64
+    },
+    "background": 0.0,
+    "accelerator": {
+        "type": "bbh"
+    },
+    "integrator": {
+        "type": "path_tracer_mis",
+        "max_bounces": 1
+    },
+    "surfaces": [
+        {
+            "type": "mesh",
+            "filename": "../assets/cube.obj",
+            "name": "monolith",
+            "transform": [
+                {
+                    "translate": [0, 0.5, 0]
+                }, {
+                    "scale": [1, 9, 4]
+                }
+            ],
+            "material": {
+                "type": "lambertian",
+                "albedo": 0.8
+            }
+        }, {
+            "type": "quad",
+            "name": "floor",
+            "transform": [
+                {
+                    "y": [
+                        0, 0, -1
+                    ],
+                    "z": [0, 1, 0]
+                }
+            ],
+            "size": [
+                24, 18
+            ],
+            "material": {
+                "type": "lambertian",
+                "albedo": 0.95
+            }
+        }, {
+            "type": "triangle",
+            "name": "glowing wall1",
+            "positions": [
+                [
+                    -12, 0, 9
+                ],
+                [
+                    -12, 0, -9
+                ],
+                [
+                    -12, 10, -9
+                ]
+            ],
+            "material": {
+                "type": "diffuse_light",
+                "emit": 1
+            }
+        }, {
+            "type": "triangle",
+            "name": "glowing wall2",
+            "positions": [
+                [
+                    -12, 0, 9
+                ],
+                [
+                    -12, 10, -9
+                ],
+                [
+                    -12, 10, 9
+                ]
+            ],
+            "material": {
+                "type": "diffuse_light",
+                "emit": 1
+            }
+        }
+    ]
+}

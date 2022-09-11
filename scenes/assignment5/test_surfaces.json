@@ -1,0 +1,125 @@
+{
+    "type": "tests",
+    "tests": [
+        {
+            "type": "sample_surface",
+            "name": "triangle",
+            "surface": {
+                "type": "triangle",
+                "positions": [
+                    [
+                        -0.5, 0.2, -1.0
+                    ],
+                    [
+                        0.5, 0.375, -1.0
+                    ],
+                    [
+                        -0.5, 0.2, 1.0
+                    ]
+                ],
+                "material": {
+                    "type": "lambertian",
+                    "albedo": 1.0
+                }
+            }
+        }, {
+            "type": "sample_surface",
+            "name": "quad",
+            "surface": {
+                "type": "quad",
+                "size": 1.0,
+                "transform": {
+                    "o": [
+                        0, 0, 1
+                    ],
+                    "x": [
+                        1, 0, 0
+                    ],
+                    "y": [0, 1, 1]
+                },
+                "material": {
+                    "type": "lambertian",
+                    "albedo": 1.0
+                }
+            }
+        }, {
+            "type": "sample_surface",
+            "name": "sphere",
+            "surface": {
+                "type": "sphere",
+                "radius": 3.0,
+                "transform": {
+                    "o": [0, 3.2, 0.4]
+                },
+                "material": {
+                    "type": "lambertian",
+                    "albedo": 1.0
+                }
+            }
+        }, {
+            "type": "sample_surface",
+            "name": "group",
+            "surfaces": {
+                "type": "group",
+                "children": [
+                    {
+                        "type": "triangle",
+                        "positions": [
+                            [
+                                -1.5, 0.2, -1.0
+                            ],
+                            [
+                                2.5, 0.375, -1.0
+                            ],
+                            [
+                                -0.5, 0.2, 1.0
+                            ]
+                        ],
+                        "material": {
+                            "type": "lambertian",
+                            "albedo": 1.0
+                        }
+                    }, {
+                        "type": "quad",
+                        "size": 1.0,
+                        "transform": {
+                            "o": [
+                                0, 0, 1
+                            ],
+                            "x": [
+                                1, 1, 0
+                            ],
+                            "y": [0, 1, 1]
+                        },
+                        "material": {
+                            "type": "lambertian",
+                            "albedo": 1.0
+                        }
+                    }, {
+                        "type": "sphere",
+                        "radius": 3.0,
+                        "transform": {
+                            "o": [0, 2.4, 3.2]
+                        },
+                        "material": {
+                            "type": "lambertian",
+                            "albedo": 1.0
+                        }
+                    }, {
+                        "type": "mesh",
+                        "filename": "../assets/cube.obj",
+                        "material": {
+                            "type": "lambertian",
+                            "albedo": 1.0
+                        },
+                        "transform": [
+                            {
+                                "translate": [0.0, -0.6, 0.2]
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,52 @@
+{
+    "camera": {
+        "transform": {
+            "from": [
+                -65.6055, 47.5762, 24.3583
+            ],
+            "at": [
+                -64.8161, 47.2211, 23.8576
+            ],
+            "up": [0.299858, 0.934836, -0.190177]
+        },
+        "vfov": 30,
+        "fdist": 800,
+        "resolution": [768, 768]
+    },
+    "sampler": {
+        "type": "independent",
+        "samples": 100
+    },
+    "background": 5,
+    "accelerator": {
+        "type": "bbh"
+    },
+    "integrator": {
+        "type": "ao"
+    },
+    "materials": [
+        {
+            "type": "lambertian",
+            "name": "white",
+            "albedo": 1.0
+        }
+    ],
+    "surfaces": [
+        {
+            "type": "mesh",
+            "name": "ajax",
+            "filename": "../assets/ajax.obj",
+            "material": "white"
+        }, {
+            "type": "mesh",
+            "name": "floor",
+            "filename": "../assets/plane.obj",
+            "transform": [
+                {
+                    "scale": [1000, 1, 1000]
+                }
+            ],
+            "material": "white"
+        }
+    ]
+}

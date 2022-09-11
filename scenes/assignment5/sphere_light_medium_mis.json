@@ -1,0 +1,56 @@
+{
+    "camera": {
+        "transform": {
+            "from": [
+                3, 0, 0.25
+            ],
+            "at": [
+                0, 0, 0.5
+            ],
+            "up": [0, 0, 1]
+        },
+        "vfov": 40,
+        "fdist": 6,
+        "resolution": [512, 512]
+    },
+    "sampler": {
+        "type": "independent",
+        "samples": 64
+    },
+    "background": 0,
+    "accelerator": {
+        "type": "bbh"
+    },
+    "integrator": {
+        "type": "path_tracer_mis",
+        "max_bounces": 1
+    },
+    "materials": [
+        {
+            "type": "diffuse_light",
+            "name": "light",
+            "emit": 4
+        }, {
+            "type": "lambertian",
+            "name": "white",
+            "albedo": 1
+        }
+    ],
+    "surfaces": [
+        {
+            "type": "sphere",
+            "material": "light",
+            "radius": 0.5,
+            "transform": {
+                "translate": [0, 0, 1]
+            }
+        }, {
+            "type": "quad",
+            "transform": {
+                "translate": [0, 0, 0]
+            },
+            "size": 100,
+            "material": "white"
+        }
+    ]
+}

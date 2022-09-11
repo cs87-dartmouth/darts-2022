@@ -1,0 +1,63 @@
+{
+    "camera": {
+        "transform": {
+            "from": [
+                5, 0, 0.6
+            ],
+            "at": [
+                0, 0, 0.5
+            ],
+            "up": [0, 0, 1]
+        },
+        "vfov": 40,
+        "fdist": 6,
+        "resolution": [512, 512]
+    },
+    "sampler": {
+        "type": "independent",
+        "samples": 64
+    },
+    "background": 1,
+    "accelerator": {
+        "type": "bbh"
+    },
+    "materials": [
+        {
+            "type": "lambertian",
+            "name": "checker",
+            "albedo": {
+                "type": "checker",
+                "even": [
+                    0.2, 0.3, 0.1
+                ],
+                "odd": [
+                    0.9, 0.9, 0.9
+                ],
+                "scale": 0.1
+            }
+        }
+    ],
+    "surfaces": [
+        {
+            "type": "sphere",
+            "material": "checker",
+            "radius": 1,
+            "transform": [
+                {
+                    "rotate": [23.5, 1, 0, 0]
+                }, {
+                    "rotate": [50, 0, 0, 1]
+                }, {
+                    "translate": [0, 0, 1]
+                }
+            ]
+        }, {
+            "type": "quad",
+            "transform": {
+                "translate": [0.0, 0.0, 0.01]
+            },
+            "size": 100,
+            "material": "checker"
+        }
+    ]
+}

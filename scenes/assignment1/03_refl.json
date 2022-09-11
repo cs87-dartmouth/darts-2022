@@ -1,0 +1,67 @@
+{
+    "camera": {
+        "transform": {
+            "o": [0, 0, 4]
+        },
+        "vfov": 45,
+        "resolution": [640, 480]
+    },
+    "sampler": {
+        "type": "independent",
+        "samples": 100
+    },
+    "background": [
+        1, 1, 1
+    ],
+    "materials": [
+        {
+            "type": "lambertian",
+            "name": "white",
+            "albedo": [0.6, 0.6, 0.6]
+        }, {
+            "type": "metal",
+            "name": "chrome",
+            "albedo": [
+                0.8, 0.8, 0.8
+            ],
+            "roughness": 0.1
+        }, {
+            "type": "lambertian",
+            "name": "green",
+            "albedo": [0.4, 0.6, 0.4]
+        }
+    ],
+    "surfaces": [
+        {
+            "type": "quad",
+            "transform": [
+                {
+                    "rotate": [-90, 1, 0, 0]
+                }, {
+                    "translate": [0, -1, 0]
+                }
+            ],
+            "size": 100,
+            "material": "white"
+        }, {
+            "type": "sphere",
+            "transform": {
+                "translate": [0.5, 0, 0]
+            },
+            "radius": 1.0,
+            "material": "chrome"
+        }, {
+            "type": "sphere",
+            "transform": [
+                {
+                    "translate": [-0.5, 0, 0]
+                }, {
+                    "scale": 0.75
+                }, {
+                    "translate": [-1.0, -0.25, -1]
+                }
+            ],
+            "material": "green"
+        }
+    ]
+}

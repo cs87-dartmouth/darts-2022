@@ -1,0 +1,254 @@
+{
+    "camera": {
+        "transform": {
+            "from": [
+                0, 0.5, 4
+            ],
+            "at": [0, 0, 2.5]
+        },
+        "vfov": 45,
+        "resolution": [512, 512]
+    },
+    "sampler": {
+        "type": "independent",
+        "samples": 1
+    },
+    "background": [
+        1.3, 1.3, 1.3
+    ],
+    "accelerator": {
+        "type": "bbh"
+    },
+    "materials": [
+        {
+            "type": "lambertian",
+            "name": "white",
+            "albedo": [0.6, 0.6, 0.6]
+        }, {
+            "type": "lambertian",
+            "name": "red",
+            "albedo": [0.6, 0.4, 0.4]
+        }, {
+            "type": "lambertian",
+            "name": "green",
+            "albedo": [0.4, 0.6, 0.4]
+        }
+    ],
+    "surfaces": [
+        {
+            "type": "quad",
+            "transform": {
+                "o": [
+                    0, -1, 0
+                ],
+                "x": [
+                    1, 0, 0
+                ],
+                "y": [
+                    0, 0, -1
+                ],
+                "z": [0, 1, 0]
+            },
+            "size": [
+                100, 100
+            ],
+            "material": {
+                "type": "lambertian",
+                "albedo": [0.7, 0.7, 0.7]
+            }
+        },
+        {
+            "type": "mesh",
+            "name": "mybunny",
+            "filename": "../assets/bunny-fine.obj",
+            "material": "green",
+            "transform": [
+                {
+                    "translate": [0, -1, 0]
+                }
+            ]
+        },
+        {
+            "type": "mesh",
+            "filename": "../assets/bunny-fine.obj",
+            "transform": [
+                {
+                    "rotate": [43, 0, 1, 0]
+                }, {
+                    "translate": [2, -1.0, -2]
+                }
+            ],
+            "material": "green"
+        },
+        {
+            "type": "mesh",
+            "filename": "../assets/bunny-fine.obj",
+            "transform": [
+                {
+                    "rotate": [120, 0, 1, 0]
+                }, {
+                    "translate": [1, 0, -5]
+                }
+            ],
+            "material": "white"
+        }, {
+            "type": "mesh",
+            "filename": "../assets/bunny-fine.obj",
+            "transform": [
+                {
+                    "rotate": [-52, 0, 1, 0]
+                }, {
+                    "translate": [-2, 0, -4]
+                }
+            ],
+            "material": "white"
+        }, {
+            "type": "mesh",
+            "filename": "../assets/bunny-fine.obj",
+            "transform": [
+                {
+                    "rotate": [-52, 0, 1, 0]
+                }, {
+                    "translate": [2, -1.0, 3]
+                }
+            ],
+            "material": "white"
+        }, {
+            "type": "mesh",
+            "filename": "../assets/bunny-fine.obj",
+            "transform": [
+                {
+                    "rotate": [-52, 0, 1, 0]
+                }, {
+                    "translate": [4, -1.0, -8]
+                }
+            ],
+            "material": "white"
+        }, {
+            "type": "mesh",
+            "filename": "../assets/bunny-fine.obj",
+            "transform": [
+                {
+                    "rotate": [-82, 0, 1, 0]
+                }, {
+                    "translate": [1, -1.0, -12]
+                }
+            ],
+            "material": "white"
+        }, {
+            "type": "mesh",
+            "name": "mydragon",
+            "filename": "../assets/dragon.obj",
+            "material": "red",
+            "transform": [
+                {
+                    "scale": [0.65, 0.65, 0.65]
+                }, {
+                    "rotate": [155, 0, 1, 0]
+                }, {
+                    "translate": [-1.5, -1.0, 0]
+                }
+            ]
+        }, {
+            "type": "mesh",
+            "filename": "../assets/dragon.obj",
+            "material": "red",
+            "transform": [
+                {
+                    "scale": [0.65, 0.65, 0.65]
+                },
+                {
+                    "rotate": [155, 0, 1, 0]
+                },
+                {
+                    "translate": [-1.5, -1.0, 0]
+                },
+                {
+                    "rotate": [25, 0, 1, 0]
+                }, {
+                    "translate": [0, 0, -7]
+                }
+            ]
+        }, {
+            "type": "mesh",
+            "filename": "../assets/dragon.obj",
+            "material": "white",
+            "transform": [
+                {
+                    "scale": [0.65, 0.65, 0.65]
+                },
+                {
+                    "rotate": [155, 0, 1, 0]
+                },
+                {
+                    "translate": [-1.5, -1.0, 0]
+                },
+                {
+                    "rotate": [-120, 0, 1, 0]
+                }, {
+                    "translate": [0, 0, 3.5]
+                }
+            ]
+        }, {
+            "type": "mesh",
+            "filename": "../assets/dragon.obj",
+            "material": "green",
+            "transform": [
+                {
+                    "scale": [0.65, 0.65, 0.65]
+                },
+                {
+                    "rotate": [155, 0, 1, 0]
+                },
+                {
+                    "translate": [-1.5, -1.0, 0]
+                },
+                {
+                    "rotate": [-120, 0, 1, 0]
+                }, {
+                    "translate": [1.5, 0, -8]
+                }
+            ]
+        }, {
+            "type": "mesh",
+            "filename": "../assets/dragon.obj",
+            "material": "green",
+            "transform": [
+                {
+                    "scale": [0.65, 0.65, 0.65]
+                },
+                {
+                    "rotate": [155, 0, 1, 0]
+                },
+                {
+                    "translate": [-1.5, -1.0, 0]
+                },
+                {
+                    "rotate": [-80, 0, 1, 0]
+                }, {
+                    "translate": [-5, 0, -9]
+                }
+            ]
+        }, {
+            "type": "mesh",
+            "filename": "../assets/dragon.obj",
+            "material": "green",
+            "transform": [
+                {
+                    "scale": [0.65, 0.65, 0.65]
+                },
+                {
+                    "rotate": [155, 0, 1, 0]
+                },
+                {
+                    "translate": [-1.5, -1.0, 0]
+                },
+                {
+                    "rotate": [-80, 0, 1, 0]
+                }, {
+                    "translate": [-5, 0, 9]
+                }
+            ]
+        }
+    ]
+}

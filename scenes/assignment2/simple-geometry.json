@@ -1,0 +1,161 @@
+{
+    "camera": {
+        "transform": {
+            "from": [
+                0, 20, 1077.5
+            ],
+            "at": [
+                0, -4, 0
+            ],
+            "up": [0, 1, 0]
+        },
+        "vfov": 40,
+        "fdist": 800
+    },
+    "sampler": {
+        "samples": 64
+    },
+    "background": [
+        0, 0, 0
+    ],
+    "accelerator": {
+        "type": "bbh"
+    },
+    "materials": [
+        {
+            "type": "lambertian",
+            "name": "white",
+            "albedo": [0.73, 0.73, 0.73]
+        },
+        {
+            "type": "lambertian",
+            "name": "red",
+            "albedo": [0.65, 0.05, 0.05]
+        },
+        {
+            "type": "lambertian",
+            "name": "green",
+            "albedo": [0.12, 0.45, 0.15]
+        },
+        {
+            "type": "diffuse_light",
+            "name": "light",
+            "emit": [2.6, 2.6, 2.6]
+        }, {
+            "type": "metal",
+            "name": "chrome",
+            "albedo": [
+                0.8, 0.8, 0.8
+            ],
+            "roughness": 0.0
+        }, {
+            "type": "dielectric",
+            "name": "glass",
+            "ior": 1.3
+        }
+    ],
+    "surfaces": [
+        {
+            "type": "quad",
+            "transform": [
+                {
+                    "translate": [0, 0, -277.5]
+                }
+            ],
+            "size": [
+                555, 555
+            ],
+            "material": "white"
+        },
+        {
+            "type": "quad",
+            "transform": [
+                {
+                    "rotate": [90, 1, 0, 0]
+                }, {
+                    "translate": [0, 277.5, 0]
+                }
+            ],
+            "size": [
+                555, 555
+            ],
+            "material": "white"
+        },
+        {
+            "type": "quad",
+            "transform": [
+                {
+                    "rotate": [-90, 1, 0, 0]
+                }, {
+                    "translate": [0, -277.5, 0]
+                }
+            ],
+            "size": [
+                555, 555
+            ],
+            "material": "white"
+        },
+        {
+            "type": "quad",
+            "transform": [
+                {
+                    "rotate": [90, 0, 1, 0]
+                }, {
+                    "translate": [-277.5, 0, 0]
+                }
+            ],
+            "size": [
+                555, 555
+            ],
+            "material": "green"
+        }, {
+            "type": "quad",
+            "transform": [
+                {
+                    "rotate": [-90, 0, 1, 0]
+                }, {
+                    "translate": [277.5, 0, 0]
+                }
+            ],
+            "size": [
+                555, 555
+            ],
+            "material": "red"
+        }, {
+            "type": "quad",
+            "transform": [
+                {
+                    "rotate": [90, 1, 0, 0]
+                }, {
+                    "translate": [0, 277, 0]
+                }
+            ],
+            "size": [
+                530, 530
+            ],
+            "material": "light"
+        }, {
+            "type": "mesh",
+            "transform": [
+                {
+                    "scale": 100
+                }, {
+                    "translate": [140, -177.5, 100]
+                }
+            ],
+            "filename": "../assets/cylinder.obj",
+            "material": "white"
+        }, {
+            "type": "mesh",
+            "transform": [
+                {
+                    "scale": 100
+                }, {
+                    "translate": [-140, -177.5, -100]
+                }
+            ],
+            "filename": "../assets/cone.obj",
+            "material": "white"
+        }
+    ]
+}

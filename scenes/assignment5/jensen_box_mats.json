@@ -1,0 +1,173 @@
+{
+    "camera": {
+        "transform": {
+            "from": [
+                0, 0.51, 2.89
+            ],
+            "at": [
+                0, 0.4, -0.19
+            ],
+            "up": [0, 1, 0]
+        },
+        "vfov": 30.0,
+        "resolution": [640, 480]
+    },
+    "sampler": {
+        "type": "independent",
+        "samples": 100
+    },
+    "background": [
+        0, 0, 0
+    ],
+    "accelerator": {
+        "type": "bbh"
+    },
+    "integrator": {
+        "type": "path_tracer_mats",
+        "max_bounces": 64,
+        "recursive": false,
+        "russian roulette": true,
+        "power": 1
+    },
+    "materials": [
+        {
+            "type": "phong",
+            "name": "white",
+            "albedo": 0.8,
+            "exponent": 2
+        },
+        {
+            "type": "phong",
+            "name": "left wall",
+            "albedo": [
+                0.8, 0.28, 0.28
+            ],
+            "exponent": 2
+        },
+        {
+            "type": "phong",
+            "name": "right wall",
+            "albedo": [
+                0.28, 0.28, 0.8
+            ],
+            "exponent": 2
+        },
+        {
+            "type": "diffuse_light",
+            "name": "light",
+            "emit": 7.5
+        }, {
+            "type": "phong",
+            "name": "chrome",
+            "albedo": [
+                0.9, 0.9, 0.9
+            ],
+            "exponent": 500
+        }, {
+            "type": "dielectric",
+            "name": "glass",
+            "ior": 1.5
+        }
+    ],
+    "surfaces": [
+        {
+            "type": "quad",
+            "name": "back wall",
+            "transform": [
+                {
+                    "translate": [0, 0.42, 0]
+                }
+            ],
+            "size": [
+                1, 0.84
+            ],
+            "material": "white"
+        },
+        {
+            "type": "quad",
+            "name": "ceiling",
+            "transform": [
+                {
+                    "rotate": [90, 1, 0, 0]
+                }, {
+                    "translate": [0, 0.84, 0.825]
+                }
+            ],
+            "size": [
+                1, 1.65
+            ],
+            "material": "white"
+        },
+        {
+            "type": "quad",
+            "name": "floor",
+            "transform": [
+                {
+                    "rotate": [-90, 1, 0, 0]
+                }, {
+                    "translate": [0, 0, 0.825]
+                }
+            ],
+            "size": [
+                1, 1.65
+            ],
+            "material": "white"
+        },
+        {
+            "type": "quad",
+            "name": "left wall",
+            "transform": [
+                {
+                    "rotate": [90, 0, 1, 0]
+                }, {
+                    "translate": [-0.5, 0.42, 0.825]
+                }
+            ],
+            "size": [
+                1.65, 0.84
+            ],
+            "material": "left wall"
+        }, {
+            "type": "quad",
+            "name": "right wall",
+            "transform": [
+                {
+                    "rotate": [-90, 0, 1, 0]
+                }, {
+                    "translate": [0.5, 0.42, 0.825]
+                }
+            ],
+            "size": [
+                1.65, 0.84
+            ],
+            "material": "right wall"
+        }, {
+            "type": "quad",
+            "transform": [
+                {
+                    "rotate": [90, 1, 0, 0]
+                }, {
+                    "translate": [0, 0.838, 0.77]
+                }
+            ],
+            "size": [
+                0.34, 0.34
+            ],
+            "material": "light"
+        }, {
+            "type": "sphere",
+            "transform": {
+                "translate": [0.232, 0.168, 0.77]
+            },
+            "radius": 0.168,
+            "material": "glass"
+        }, {
+            "type": "sphere",
+            "transform": {
+                "translate": [-0.235, 0.168, 0.45]
+            },
+            "radius": 0.168,
+            "material": "chrome"
+        }
+    ]
+}

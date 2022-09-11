@@ -1,0 +1,93 @@
+{
+    "camera": {
+        "transform": {
+            "from": [
+                24, 10, 0
+            ],
+            "at": [
+                0, 3.5, 0
+            ],
+            "up": [0, 1, 0]
+        },
+        "vfov": 20,
+        "fdist": 800,
+        "resolution": [720, 1280]
+    },
+    "sampler": {
+        "type": "independent",
+        "samples": 1
+    },
+    "background": 1,
+    "accelerator": {
+        "type": "bbh"
+    },
+    "materials": [
+        {
+            "type": "lambertian",
+            "name": "stone",
+            "albedo": {
+                "type": "image",
+                "filename": "../assets/loewenfeld/textures/albedo.jpg"
+            }
+        }, {
+            "name": "statue",
+            "type": "fresnel_blend",
+            "ior": 1.5,
+            "refr": "stone",
+            "refl": {
+                "type": "metal",
+                "albedo": 1.0,
+                "roughness": 0.1
+            }
+        }, {
+            "type": "lambertian",
+            "name": "Floor",
+            "albedo": {
+                "type": "checker",
+                "even": [
+                    0.725, 0.71, 0.68
+                ],
+                "odd": [
+                    0.325, 0.31, 0.25
+                ],
+                "scale": 1.75,
+                "transform": [
+                    {
+                        "rotate": [45, 0, 1, 0]
+                    }, {
+                        "translate": [0, -0.001, 0]
+                    }
+                ]
+            }
+        }
+    ],
+    "surfaces": [
+        {
+            "type": "quad",
+            "transform": [
+                {
+                    "rotate": [-90, 1, 0, 0]
+                }, {
+                    "rotate": [45, 0, 1, 0]
+                }
+            ],
+            "size": [
+                150, 150
+            ],
+            "material": "Floor"
+        }, {
+            "type": "mesh",
+            "filename": "../assets/loewenfeld/models/smoothed.obj",
+            "transform": [
+                {
+                    "translate": [0, 222.3563, 0]
+                }, {
+                    "scale": 0.014
+                }, {
+                    "rotate": [165, 0, 1, 0]
+                }
+            ],
+            "material": "statue"
+        }
+    ]
+}

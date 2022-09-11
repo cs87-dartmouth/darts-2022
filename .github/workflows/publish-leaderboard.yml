@@ -1,0 +1,72 @@
+name: Update the leaderboard
+
+on: workflow_dispatch
+
+env:
+  basecode_directory: "${{ github.workspace }}"
+
+jobs:
+  build:
+    name: Publish to GitHub pages
+    # July 12, 2022: WJ: Updated to use ubuntu-22.04 since ubunut-latest (20.04) has an older version of doxygen that leads to formatting issues.
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # - uses: actions/cache@v2
+      #   with:
+      #     path: "**/cpm_modules"
+      #     key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+
+      # - name: ccache
+      #   uses: hendrikmuhs/ccache-action@v1
+
+      - name: Setup python3
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x" # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          architecture: "x64" # optional x64 or x86. Defaults to x64 if not specified
+
+      - name: List basecode_directory
+        run: ls ${{env.basecode_directory}}
+
+      - name: Run leaderboard update script
+        working-directory: ${{ github.workspace }}
+        run: python update_leaderboard.py ${{ github.actor }}
+
+      - name: Ensure leaderboard.html was changed
+        working-directory: ${{ github.workspace }}
+        run: cat documentation/leaderboard.html
+
+      - name: List created files
+        working-directory: ${{ github.workspace }}
+        run: ls ${{env.basecode_directory}}
+
+      - name: Isolate the newly edited html
+        working-directory: ${{ github.workspace }}
+        run: |
+          mkdir temp
+          ls
+          cp documentation/leaderboard.html temp
+          ls temp
+          cat temp/leaderboard.html
+
+      - name: push the new html file to main
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ secrets.personal_token }}
+          publish_branch: main
+          publish_dir: ${{env.basecode_directory}}/temp
+          destination_dir: documentation
+          keep_files: true
+
+      # TODO: include this once the html updates correctly
+      - name: publish the new html file
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ secrets.personal_token }}
+          external_repository: cs87-dartmouth/Fall2022
+          publish_branch: gh-pages
+          publish_dir: ${{env.basecode_directory}}/temp
+          keep_files: true

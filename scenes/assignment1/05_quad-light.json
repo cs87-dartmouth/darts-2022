@@ -1,0 +1,105 @@
+{
+    "camera": {
+        "transform": {
+            "from": [
+                0, 1.75, 6
+            ],
+            "at": [0, 1, 0]
+        },
+        "resolution": [
+            640, 480
+        ],
+        "vfov": 45
+    },
+    "sampler": {
+        "type": "independent",
+        "samples": 256
+    },
+    "background": [
+        0, 0, 0
+    ],
+    "materials": [
+        {
+            "type": "lambertian",
+            "name": "white",
+            "albedo": [0.6, 0.6, 0.6]
+        },
+        {
+            "type": "metal",
+            "name": "chrome",
+            "roughness": 0.0,
+            "albedo": [0.6, 0.6, 0.6]
+        },
+        {
+            "type": "lambertian",
+            "name": "green",
+            "albedo": [0.4, 0.6, 0.4]
+        },
+        {
+            "type": "dielectric",
+            "name": "glass",
+            "ior": 1.5
+        }, {
+            "type": "diffuse_light",
+            "name": "light",
+            "emit": [20, 20, 20]
+        }
+    ],
+    "surfaces": [
+        {
+            "type": "quad",
+            "transform": [
+                {
+                    "rotate": [-90, 1, 0, 0]
+                }
+            ],
+            "size": [
+                100, 100
+            ],
+            "material": "white"
+        },
+        {
+            "type": "sphere",
+            "radius": 1.0,
+            "transform": {
+                "translate": [0.5, 1, 0]
+            },
+            "material": "glass"
+        },
+        {
+            "type": "sphere",
+            "radius": 1.0,
+            "transform": {
+                "translate": [2.2, 1, -4]
+            },
+            "material": "green"
+        },
+        {
+            "type": "sphere",
+            "radius": 1.5,
+            "transform": [
+                {
+                    "translate": [-2.5, 1.5, -3.5]
+                }
+            ],
+            "material": "chrome"
+        }, {
+            "type": "quad",
+            "transform": [
+                {
+                    "rotate": [-90, 0, 1, 0]
+                }, {
+                    "rotate": [50, 0, 0, 1]
+                }, {
+                    "translate": [4, 3.5, 0]
+                }, {
+                    "rotate": [65, 0, 1, 0]
+                }
+            ],
+            "size": [
+                1, 1
+            ],
+            "material": "light"
+        }
+    ]
+}

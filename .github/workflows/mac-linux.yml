@@ -1,0 +1,109 @@
+name: MacOS and Ubuntu
+
+on:
+  workflow_dispatch:
+  # push:
+  #    branches:
+  #      - "*"
+  # Jobs are skipped when ONLY Markdown (*.md) files are changed
+  #    paths-ignore:
+  #      - "**.md"
+  # pull_request:
+#    branches:
+#      - main
+# Jobs are skipped when ONLY Markdown (*.md) files are changed
+#    paths-ignore:
+#      - "**.md"
+
+env:
+  CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
+
+jobs:
+  build:
+    name: Build
+    runs-on: ${{matrix.os}}
+
+    strategy:
+      matrix:
+        # Run several build types
+        buildtype: ["Release", "Debug"]
+        os: [macos-latest, ubuntu-latest]
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: seanmiddleditch/gha-setup-ninja@master
+
+      - uses: actions/cache@v2
+        with:
+          path: "**/cpm_modules"
+          key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: ${{ matrix.os }}-${{ matrix.buildtype }}
+
+      - name: run on ubuntu
+        if: startsWith(matrix.os, 'ubuntu-18.04')
+        run: |
+          sudo apt install software-properties-common
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+          sudo apt install gcc-8 g++-8
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 70 --slave /usr/bin/g++ g++ /usr/bin/g++-7 --slave /usr/bin/gcov gcov /usr/bin/gcov-7
+
+      - name: configure
+        run: cmake -B ${{github.workspace}}/build -G Ninja -DUSE_FLIP:BOOL=TRUE -DCMAKE_BUILD_TYPE=${{matrix.buildtype}} -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: build
+        run: cmake --build ${{github.workspace}}/build --parallel --config ${{matrix.buildtype}}
+        # run: cmake --build ${{github.workspace}}/build --config ${{matrix.buildtype}}
+
+      - name: Checking that darts runs
+        working-directory: ${{github.workspace}}
+        run: |
+          ./build/darts --help
+
+      - name: Running tests
+        working-directory: ${{github.workspace}}
+        run: |
+          ./build/darts_tutorial0
+          ./build/darts_tutorial1
+          ./build/point_gen
+        # mkdir build/data
+        # cd build
+        # ./nanovdb_test
+
+      - name: Comparing generated images against reference
+        working-directory: ${{github.workspace}}
+        run: |
+          mkdir build/differences
+          cd build/differences
+          cp ${{github.workspace}}/scenes/assignment0/*.png .
+          cp ${{github.workspace}}/scenes/assignment1/*.png .
+          ../_deps/flip-build/flip -et -c diff.csv -t gradient.png -r gradient-ref.png
+          ../_deps/flip-build/flip -et -c diff.csv -t cornell_grayscale.png -r cornell_grayscale-ref.png
+          ../_deps/flip-build/flip -et -c diff.csv -t 01_xformed_camera_sphere_image.png -r 01_xformed_camera_sphere_image-ref.png
+          ../_deps/flip-build/flip -et -c diff.csv -t 01_xformed_camera_ray_image.png -r 01_xformed_camera_ray_image-ref.png
+          ../_deps/flip-build/flip -et -c diff.csv -t 01_manual_ray_image.png -r 01_manual_ray_image-ref.png
+          ../_deps/flip-build/flip -et -c diff.csv -t 01_recursive_raytracing.png -r 01_recursive_raytracing-ref.png
+
+      # - name: Check NanoVDB file existence
+      #   id: check_files
+      #   uses: andstor/file-existence-action@v1
+      #   with:
+      #     files: "./build/data/primitives.nvdb"
+
+      # - name: NanoVDB File exists
+      #   if: steps.check_files.outputs.files_exists == 'true'
+      #   # Only runs if all of the files exists
+      #   run: echo All files exists!
+
+      - name: Archive test artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: differences-${{ matrix.os }}-${{ matrix.buildtype }}
+          path: |
+            ${{github.workspace}}/build/differences/

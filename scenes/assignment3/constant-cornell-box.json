@@ -1,0 +1,166 @@
+{
+    "camera": {
+        "transform": {
+            "from": [
+                0, 20, 1077.5
+            ],
+            "at": [
+                0, -4, 0
+            ],
+            "up": [0, 1, 0]
+        },
+        "vfov": 40,
+        "fdist": 800
+    },
+    "sampler": {
+        "type": "independent",
+        "samples": 100
+    },
+    "background": [
+        0, 0, 0
+    ],
+    "accelerator": {
+        "type": "bbh"
+    },
+    "materials": [
+        {
+            "type": "lambertian",
+            "name": "white",
+            "albedo": {
+                "type": "constant",
+                "color": [0.73, 0.73, 0.73]
+            }
+        },
+        {
+            "type": "lambertian",
+            "name": "red",
+            "albedo": {
+                "type": "constant",
+                "color": [0.65, 0.05, 0.05]
+            }
+        },
+        {
+            "type": "lambertian",
+            "name": "green",
+            "albedo": {
+                "type": "constant",
+                "color": [0.12, 0.45, 0.15]
+            }
+        },
+        {
+            "type": "diffuse_light",
+            "name": "light",
+            "emit": 15
+        }, {
+            "type": "lambertian",
+            "name": "redsphere",
+            "albedo": {
+                "type": "constant",
+                "color": [0.75, 0.25, 0.25]
+            }
+        }, {
+            "type": "lambertian",
+            "name": "greensphere",
+            "albedo": {
+                "type": "constant",
+                "color": [0.25, 0.75, 0.25]
+            }
+        }
+    ],
+    "surfaces": [
+        {
+            "type": "quad",
+            "transform": [
+                {
+                    "translate": [0, 0, -277.5]
+                }
+            ],
+            "size": [
+                555, 555
+            ],
+            "material": "white"
+        },
+        {
+            "type": "quad",
+            "transform": [
+                {
+                    "rotate": [90, 1, 0, 0]
+                }, {
+                    "translate": [0, 277.5, 0]
+                }
+            ],
+            "size": [
+                555, 555
+            ],
+            "material": "white"
+        },
+        {
+            "type": "quad",
+            "transform": [
+                {
+                    "rotate": [-90, 1, 0, 0]
+                }, {
+                    "translate": [0, -277.5, 0]
+                }
+            ],
+            "size": [
+                555, 555
+            ],
+            "material": "white"
+        },
+        {
+            "type": "quad",
+            "transform": [
+                {
+                    "rotate": [90, 0, 1, 0]
+                }, {
+                    "translate": [-277.5, 0, 0]
+                }
+            ],
+            "size": [
+                555, 555
+            ],
+            "material": "green"
+        }, {
+            "type": "quad",
+            "transform": [
+                {
+                    "rotate": [-90, 0, 1, 0]
+                }, {
+                    "translate": [277.5, 0, 0]
+                }
+            ],
+            "size": [
+                555, 555
+            ],
+            "material": "red"
+        }, {
+            "type": "quad",
+            "transform": [
+                {
+                    "rotate": [90, 1, 0, 0]
+                }, {
+                    "translate": [0, 277, 0]
+                }
+            ],
+            "size": [
+                130, 130
+            ],
+            "material": "light"
+        }, {
+            "type": "sphere",
+            "transform": {
+                "translate": [140, -177.5, 100]
+            },
+            "radius": 100,
+            "material": "greensphere"
+        }, {
+            "type": "sphere",
+            "transform": {
+                "translate": [-140, -177.5, -100]
+            },
+            "radius": 100,
+            "material": "redsphere"
+        }
+    ]
+}

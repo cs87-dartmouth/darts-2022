@@ -1,0 +1,110 @@
+{
+    "camera": {
+        "transform": {
+            "from": [
+                24, 10, 0
+            ],
+            "at": [
+                0, 3.5, 0
+            ],
+            "up": [0, 1, 0]
+        },
+        "vfov": 20,
+        "fdist": 800,
+        "resolution": [720, 1280]
+    },
+    "sampler": {
+        "type": "independent",
+        "samples": 1
+    },
+    "background": 1,
+    "accelerator": {
+        "type": "bbh"
+    },
+    "materials": [
+        {
+            "type": "lambertian",
+            "name": "stone",
+            "albedo": {
+                "type": "marble",
+                "scale": 3.0,
+                "veins": [
+                    0.29, 0.23, 0.15
+                ],
+                "base": [
+                    0.45, 0.4, 0.29
+                ],
+                "mapping3d": {
+                    "type": "identity",
+                    "transform": [
+                        {
+                            "scale": 1.667
+                        }
+                    ]
+                }
+            }
+        }, {
+            "name": "statue",
+            "type": "fresnel_blend",
+            "ior": 1.5,
+            "refr": "stone",
+            "refl": {
+                "type": "metal",
+                "albedo": 1.0,
+                "roughness": 0.1
+            }
+        }, {
+            "type": "lambertian",
+            "name": "Floor",
+            "albedo": {
+                "type": "checker",
+                "even": [
+                    0.725, 0.71, 0.68
+                ],
+                "odd": [
+                    0.325, 0.31, 0.25
+                ],
+                "scale": 1.75,
+                "mapping3d": {
+                    "type": "identity",
+                    "transform": [
+                        {
+                            "translate": [0, 0.001, 0]
+                        }, {
+                            "rotate": [-45, 0, 1, 0]
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "surfaces": [
+        {
+            "type": "mesh",
+            "name": "ajax",
+            "filename": "../assets/ajax.obj",
+            "material": "statue",
+            "transform": [
+                {
+                    "translate": [-0.053126335, 0.030193329, 17.283958]
+                }, {
+                    "scale": 0.2
+                }, {
+                    "rotate": [150, 0, 1, 0]
+                }, {
+                    "translate": [0, 0, -0.25]
+                }
+            ]
+        }, {
+            "type": "mesh",
+            "name": "floor",
+            "filename": "../assets/plane.obj",
+            "transform": [
+                {
+                    "scale": [1000, 1, 1000]
+                }
+            ],
+            "material": "Floor"
+        }
+    ]
+}

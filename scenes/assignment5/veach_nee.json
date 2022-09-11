@@ -1,0 +1,125 @@
+{
+    "camera": {
+        "transform": {
+            "from": [
+                0, 6, 27.5
+            ],
+            "at": [
+                0, -1.5, 2.5
+            ],
+            "up": [0, 1, 0]
+        },
+        "vfov": 16,
+        "fdist": 800,
+        "resolution": [768, 512]
+    },
+    "sampler": {
+        "type": "cmj",
+        "samples": 64
+    },
+    "background": 0,
+    "accelerator": {
+        "type": "bbh"
+    },
+    "integrator": {
+        "type": "path_tracer_nee",
+        "max_bounces": 1
+    },
+    "surfaces": [
+        {
+            "type": "sphere",
+            "material": {
+                "type": "diffuse_light",
+                "emit": 901.803
+            },
+            "transform": [
+                {
+                    "scale": [0.03333, 0.03333, 0.03333]
+                }, {
+                    "translate": [3.75, 0, 0]
+                }
+            ]
+        },
+        {
+            "type": "sphere",
+            "material": {
+                "type": "diffuse_light",
+                "emit": 100
+            },
+            "transform": [
+                {
+                    "scale": [0.1, 0.1, 0.1]
+                }, {
+                    "translate": [1.25, 0, 0]
+                }
+            ]
+        },
+        {
+            "type": "sphere",
+            "material": {
+                "type": "diffuse_light",
+                "emit": 11.1111
+            },
+            "transform": [
+                {
+                    "scale": [0.3, 0.3, 0.3]
+                }, {
+                    "translate": [-1.25, 0, 0]
+                }
+            ]
+        },
+        {
+            "type": "sphere",
+            "material": {
+                "type": "diffuse_light",
+                "emit": 1.23457
+            },
+            "transform": [
+                {
+                    "scale": [0.9, 0.9, 0.9]
+                }, {
+                    "translate": [-3.75, 0, 0]
+                }
+            ]
+        }, {
+            "type": "mesh",
+            "filename": "../assets/veach/plate1.obj",
+            "material": {
+                "type": "phong",
+                "albedo": 0.35,
+                "exponent": 100000
+            }
+        }, {
+            "type": "mesh",
+            "filename": "../assets/veach/plate2.obj",
+            "material": {
+                "type": "phong",
+                "albedo": 0.25,
+                "exponent": 5000
+            }
+        }, {
+            "type": "mesh",
+            "filename": "../assets/veach/plate3.obj",
+            "material": {
+                "type": "phong",
+                "albedo": 0.2,
+                "exponent": 400
+            }
+        }, {
+            "type": "mesh",
+            "filename": "../assets/veach/plate4.obj",
+            "material": {
+                "type": "phong",
+                "albedo": 0.2,
+                "exponent": 100
+            }
+        }, {
+            "type": "mesh",
+            "filename": "../assets/veach/floor.obj",
+            "material": {
+                "type": "lambertian",
+                "albedo": [0.2, 0.2, 0.2]
+            }
+        }
+    ]
+}

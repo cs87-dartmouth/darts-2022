@@ -1,0 +1,64 @@
+{
+    "camera": {
+        "transform": {
+            "from": [
+                24, 10, 0
+            ],
+            "at": [
+                0, 3.5, 0
+            ],
+            "up": [0, 1, 0]
+        },
+        "vfov": 20,
+        "fdist": 800,
+        "resolution": [720, 1280]
+    },
+    "sampler": {
+        "type": "independent",
+        "samples": 1
+    },
+    "background": 5,
+    "accelerator": {
+        "type": "bbh"
+    },
+    "materials": [
+        {
+            "type": "lambertian",
+            "name": "defaultMat",
+            "albedo": 0.2
+        }
+    ],
+    "surfaces": [
+        {
+            "type": "quad",
+            "name": "floor",
+            "transform": [
+                {
+                    "rotate": [-90, 1, 0, 0]
+                }, {
+                    "rotate": [45, 0, 1, 0]
+                }
+            ],
+            "size": [
+                150, 150
+            ],
+            "material": "defaultMat"
+        }, {
+            "type": "mesh",
+            "name": "ajax",
+            "filename": "../assets/nefertiti/aem_aem21300_3dsl01_mo08-03_p.obj",
+            "transform": [
+                {
+                    "rotate": [-90, 1, 0, 0]
+                }, {
+                    "translate": [413.7063, 226.50739, 86.24023]
+                }, {
+                    "scale": 0.015
+                }, {
+                    "rotate": [115, 0, 1, 0]
+                }
+            ],
+            "material": "defaultMat"
+        }
+    ]
+}

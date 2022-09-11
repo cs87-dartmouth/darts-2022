@@ -1,0 +1,17 @@
+/build*
+/.vscode
+/cpm_modules
+.DS_Store
+__pycache__
+/documentation/build*
+/documentation/**/*.exr
+# /scenes/**/*.obj
+# /scenes/**/*.exr
+# /scenes/**/*.hdr
+# /scenes/**/*.jpg
+# /scenes/**/*.png
+/scenes/**/*202*-*.*
+/example_scene*202*-*.*
+/scenes/misc
+/scenes/meshes
+/scenes/assets
