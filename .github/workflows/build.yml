@@ -40,7 +40,7 @@ jobs:
               cc: "gcc",
               cxx: "g++",
               ext: "",
-              buildtype: "Release",
+              buildtype: Release,
             }
           - {
               name: "MacOS Latest - Clang",
@@ -69,7 +69,7 @@ jobs:
         if: runner.os != 'Windows'
         uses: hendrikmuhs/ccache-action@v1
         with:
-          key: ${{ matrix.os }}-${{matrix.buildtype}}
+          key: ${{ matrix.config.os }}-${{ matrix.config.buildtype }}
 
       - name: Create Build Environment
         run: cmake -E make_directory ${{github.workspace}}/build
@@ -79,37 +79,37 @@ jobs:
         working-directory: ${{github.workspace}}
         if: runner.os != 'Windows'
         run: |
-          cmake -B ${{github.workspace}}/build/${{matrix.buildtype}} -G Ninja -DUSE_FLIP:BOOL=TRUE -DCMAKE_BUILD_TYPE=${{matrix.buildtype}} -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          cmake -B ${{github.workspace}}/build/${{ matrix.config.buildtype }} -G Ninja -DUSE_FLIP:BOOL=TRUE -DCMAKE_BUILD_TYPE=${{ matrix.config.buildtype }} -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Configure CMake (Windows)
         working-directory: ${{github.workspace}}
         if: runner.os == 'Windows'
         run: |
-          cmake -B ${{github.workspace}}/build -DUSE_FLIP:BOOL=TRUE -DCMAKE_BUILD_TYPE=${{matrix.buildtype}}
+          cmake -B ${{github.workspace}}/build -DUSE_FLIP:BOOL=TRUE -DCMAKE_BUILD_TYPE=${{ matrix.config.buildtype }}
 
       - name: Build
         shell: bash
         working-directory: ${{github.workspace}}
         if: runner.os != 'Windows'
-        run: cmake --build ${{github.workspace}}/build/${{matrix.buildtype}} --parallel --config ${{matrix.buildtype}}
-        # run: cmake --build ${{github.workspace}}/build --config ${{matrix.buildtype}}
+        run: cmake --build ${{github.workspace}}/build/${{ matrix.config.buildtype }} --parallel --config ${{ matrix.config.buildtype }}
+        # run: cmake --build ${{github.workspace}}/build --config ${{ matrix.config.buildtype }}
 
       - name: Build (Windows)
         working-directory: ${{github.workspace}}
         if: runner.os == 'Windows'
-        run: cmake --build ${{github.workspace}}/build/ --parallel --config ${{matrix.buildtype}}
-        # run: cmake --build ${{github.workspace}}/build --config ${{matrix.buildtype}}
+        run: cmake --build ${{github.workspace}}/build/ --parallel --config ${{ matrix.config.buildtype }}
+        # run: cmake --build ${{github.workspace}}/build --config ${{ matrix.config.buildtype }}
 
       - name: Testing that code runs
         shell: bash
         working-directory: ${{github.workspace}}
         run: |
           pwd
-          ./build/${{matrix.buildtype}}/darts_tutorial0${{matrix.ext}}   # change this or add to it as we progress through the assignments
-        # ./build/${{matrix.buildtype}}/darts_tutorial1${{env.ext}}
-        # ./build/${{matrix.buildtype}}/point_gen${{env.ext}}
-        # mkdir build/${{matrix.buildtype}}/data
-        # cd build/${{matrix.buildtype}}
+          ./build/${{ matrix.config.buildtype }}/darts_tutorial0${{matrix.ext}}   # change this or add to it as we progress through the assignments
+        # ./build/${{ matrix.config.buildtype }}/darts_tutorial1${{env.ext}}
+        # ./build/${{ matrix.config.buildtype }}/point_gen${{env.ext}}
+        # mkdir build/${{ matrix.config.buildtype }}/data
+        # cd build/${{ matrix.config.buildtype }}
         # ./nanovdb_test${{env.ext}}
 
       # - name: Comparing generated images against reference
@@ -140,6 +140,6 @@ jobs:
       # - name: Archive test artifacts
       #   uses: actions/upload-artifact@v2
       #   with:
-      #     name: differences-${{ matrix.os }}-${{ matrix.buildtype }}
+      #     name: differences-${{ matrix.config.os }}-${{ matrix.config.buildtype }}
       #     path: |
       #       ${{github.workspace}}/build/differences/
