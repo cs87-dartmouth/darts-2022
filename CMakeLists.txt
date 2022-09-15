@@ -20,6 +20,33 @@ list(
   APPEND
   darts_lib_SOURCES
   # cmake-format: off
+  # Additional files for A1 below
+  include/darts/camera.h
+  include/darts/factory.h
+  include/darts/json.h
+  include/darts/material.h
+  include/darts/sampling.h
+  include/darts/scene.h
+  include/darts/sphere.h
+  include/darts/stats.h
+  include/darts/surface.h
+  include/darts/surface_group.h
+  include/darts/transform.h
+  src/camera.cpp
+  src/example_scenes.cpp
+  src/parser.cpp
+  src/scene.cpp
+  src/stats.cpp
+  src/materials/dielectric.cpp
+  src/materials/diffuse_light.cpp
+  src/materials/lambertian.cpp
+  src/materials/material.cpp
+  src/materials/metal.cpp
+  src/surfaces/quad.cpp
+  src/surfaces/sphere.cpp
+  src/surfaces/surface.cpp
+  src/surfaces/surface_group.cpp
+  # The files below are included in the A0 basecode
   include/darts/array2d.h
   include/darts/common.h
   include/darts/fwd.h
@@ -67,6 +94,11 @@ target_include_directories(
 add_executable(darts_tutorial0 src/darts_tutorial0.cpp)
 target_link_libraries(darts_tutorial0 PRIVATE darts_lib)
 
+add_executable(darts_tutorial1 src/darts_tutorial1.cpp)
+target_link_libraries(darts_tutorial1 PRIVATE darts_lib)
+
+add_executable(darts src/darts.cpp)
+target_link_libraries(darts PRIVATE darts_lib)
 
 
 

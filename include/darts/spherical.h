@@ -174,7 +174,7 @@ Vec3<T> spherical_coordinates_to_direction(const Vec2<T> &phi_theta)
 /**
     Convert a unit direction from Cartesian coordinates to spherical (phi,theta) coordinates
 
-    \param [in] dir
+    \param [in] v
         The direction vector in Cartesian coordinates (assumed to be unit length)
     \return
         The spherical angles with \f$\phi \in [0,2\pi)\f$ and \f$\theta \in [0, \pi]\f$.

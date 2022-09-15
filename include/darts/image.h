@@ -16,21 +16,6 @@ class Image3f : public Array2d<Color3f>
     using Base = Array2d<Color3f>;
 
 public:
-    enum class WrapMode
-    {
-        Repeat, ///< Assume that the image repeats periodically
-        Clamp,  ///< Clamp to the outermost pixel value
-        Zero,   ///< Return zero (black) outside the defined domain
-        One     ///< Return one (white) outside the defined domain
-    };
-
-    enum class FilterType
-    {
-        /// Nearest neighbor lookups
-        Nearest = 0,
-        /// Bilinear interpolation
-        Bilinear = 1,
-    };
 
     /// Default constructor (empty image)
     Image3f() : Base()
@@ -57,58 +42,6 @@ public:
     {
         reset(v);
     }
-
-    const Color3f &texel(int x, int y, WrapMode xmode = WrapMode::Repeat, WrapMode ymode = WrapMode::Repeat) const
-    {
-        static const Color3f black = Color3f{0.f};
-        static const Color3f white = Color3f{1.f};
-        int                  s = x, t = y;
-        if (s < 0 || s >= width())
-        {
-            switch (xmode)
-            {
-            case WrapMode::Repeat: s = mod(s, width()); break;
-            case WrapMode::Clamp: s = std::clamp(s, 0, width() - 1); break;
-            case WrapMode::Zero:
-                if (s < 0 || s >= width())
-                    return black;
-                break;
-            case WrapMode::One:
-                if (s < 0 || s >= width())
-                    return black;
-                break;
-            }
-        }
-
-        if (t < 0 || t >= height())
-        {
-            switch (ymode)
-            {
-            case WrapMode::Repeat: t = mod(t, height()); break;
-            case WrapMode::Clamp: t = std::clamp(t, 0, height() - 1); break;
-            case WrapMode::Zero:
-                if (t < 0 || t >= height())
-                    return black;
-                break;
-            case WrapMode::One:
-                if (t < 0 || t >= height())
-                    return black;
-                break;
-            }
-        }
-
-        return this->operator()(s, t);
-    }
-
-    Color3f bilinear(float x, float y, WrapMode xmode = WrapMode::Repeat, WrapMode ymode = WrapMode::Repeat) const
-    {
-        int   ix = int(std::floor(x)), iy = int(std::floor(y));
-        float dx1 = x - ix, dx2 = 1.f - dx1, dy1 = y - iy, dy2 = 1.f - dy1;
-
-        return texel(ix, iy, xmode, ymode) * dx2 * dy2 + texel(ix, iy + 1, xmode, ymode) * dx2 * dy1 +
-               texel(ix + 1, iy, xmode, ymode) * dx1 * dy2 + texel(ix + 1, iy + 1, xmode, ymode) * dx1 * dy1;
-    }
-
     /**
         Load an image from file
 
