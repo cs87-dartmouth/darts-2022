@@ -20,7 +20,17 @@ list(
   APPEND
   darts_lib_SOURCES
   # cmake-format: off
-  # Additional files for A1 below
+  # Additional files for PA2 below
+  include/darts/test.h
+  include/darts/box.h
+  include/darts/mesh.h
+  include/darts/triangle.h
+  src/surfaces/bbh.cpp
+  src/surfaces/mesh.cpp
+  src/surfaces/triangle.cpp
+  src/tests/test.cpp
+  src/tests/intersection_test.cpp
+  # Additional files for PA1 below
   include/darts/camera.h
   include/darts/factory.h
   include/darts/json.h
@@ -46,7 +56,7 @@ list(
   src/surfaces/sphere.cpp
   src/surfaces/surface.cpp
   src/surfaces/surface_group.cpp
-  # The files below are included in the A0 basecode
+  # The files below are included in the PA0 basecode
   include/darts/array2d.h
   include/darts/common.h
   include/darts/fwd.h
@@ -100,5 +110,10 @@ target_link_libraries(darts_tutorial1 PRIVATE darts_lib)
 add_executable(darts src/darts.cpp)
 target_link_libraries(darts PRIVATE darts_lib)
 
+add_executable(img_compare src/img_compare.cpp)
+target_link_libraries(img_compare PRIVATE darts_lib)
+
+add_executable(img_avg src/img_avg.cpp)
+target_link_libraries(img_avg PRIVATE darts_lib)
 
 

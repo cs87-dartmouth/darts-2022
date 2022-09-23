@@ -12,6 +12,10 @@ XformedSurface::XformedSurface(const json &j)
     m_xform = j.value("transform", m_xform);
 }
 
+Box3f XformedSurface::bounds() const
+{
+    return m_xform.box(local_bounds());
+}
 
 
 XformedSurfaceWithMaterial::XformedSurfaceWithMaterial(const json &j) : XformedSurface(j)

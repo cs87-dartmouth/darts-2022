@@ -11,6 +11,7 @@
 
 #include <darts/common.h>
 #include <darts/ray.h>
+#include <darts/box.h>
 
 /**
     Homogeneous coordinate transformation
@@ -97,6 +98,32 @@ struct Transform
         return Ray3f();
     }
 
+    /// Transform the axis-aligned Box and return the bounding box of the result
+    Box3f box(const Box3f &box) const
+    {
+        // a transformed empty box is still empty
+        if (box.is_empty())
+            return box;
+
+        // Just in case this is a projection matrix, do things the naive way.
+        Vec3f pts[8];
+
+        // Set up the eight points at the corners of the extent
+        pts[0].x = pts[1].x = pts[2].x = pts[3].x = box.min.x;
+        pts[4].x = pts[5].x = pts[6].x = pts[7].x = box.max.x;
+
+        pts[0].y = pts[1].y = pts[4].y = pts[5].y = box.min.y;
+        pts[2].y = pts[3].y = pts[6].y = pts[7].y = box.max.y;
+
+        pts[0].z = pts[2].z = pts[4].z = pts[6].z = box.min.z;
+        pts[1].z = pts[3].z = pts[5].z = pts[7].z = box.max.z;
+
+        Box3f new_box(point(pts[0]));
+        for (size_t i = 1; i < 8; ++i)
+            new_box.enclose(point(pts[i]));
+
+        return new_box;
+    }
 
     static Transform translate(const Vec3f &t)
     {

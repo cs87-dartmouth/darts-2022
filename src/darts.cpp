@@ -14,6 +14,7 @@
 #include <darts/scene.h>
 #include <filesystem/resolver.h>
 #include <fmt/chrono.h>
+#include <darts/test.h>
 
 int main(int argc, char **argv)
 {
@@ -97,6 +98,7 @@ The default is 2 (info).)")
                             /* ignore_comments */ true);
         }
 
+        run_tests(j);
 
         auto scene = make_shared<Scene>(j);
 

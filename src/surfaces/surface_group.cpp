@@ -25,6 +25,7 @@ SurfaceGroup::SurfaceGroup(const json &j) : XformedSurface(j)
 void SurfaceGroup::add_child(shared_ptr<Surface> surface)
 {
     m_surfaces.push_back(surface);
+    m_bounds.enclose(m_surfaces.back()->bounds());
 }
 
 bool SurfaceGroup::intersect(const Ray3f &ray_, HitInfo &hit) const
@@ -54,6 +55,10 @@ bool SurfaceGroup::intersect(const Ray3f &ray_, HitInfo &hit) const
     return hit_anything;
 }
 
+Box3f SurfaceGroup::local_bounds() const
+{
+    return m_bounds;
+}
 
 
 DARTS_REGISTER_CLASS_IN_FACTORY(Surface, SurfaceGroup, "group")

@@ -100,6 +100,8 @@ public:
     {
         throw DartsException("Surface intersection method not implemented.");
     }
+    /// Return the surface's world-space AABB.
+    virtual Box3f bounds() const = 0;
 
 
 };
@@ -119,6 +121,11 @@ public:
     XformedSurface(const json &j = json::object());
     virtual ~XformedSurface() = default;
 
+    /// The world-space bounds: obtained by simply applying #m_xform to the result of #local_bounds()
+    virtual Box3f bounds() const override;
+
+    /// Return the surface's local-space AABB.
+    virtual Box3f local_bounds() const = 0;
 
 protected:
     Transform m_xform = Transform(); ///< Local-to-world Transformation

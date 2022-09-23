@@ -50,6 +50,10 @@ bool Sphere::intersect(const Ray3f &ray, HitInfo &hit) const
     return true;
 }
 
+Box3f Sphere::local_bounds() const
+{
+    return Box3f{Vec3f{-m_radius}, Vec3f{m_radius}};
+}
 
 
 DARTS_REGISTER_CLASS_IN_FACTORY(Surface, Sphere, "sphere")

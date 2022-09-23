@@ -13,6 +13,7 @@ public:
     Quad(const json &j = json::object());
 
     bool intersect(const Ray3f &ray, HitInfo &hit) const override;
+    Box3f local_bounds() const override;
 
 protected:
     Vec2f m_size = Vec2f(1.f); ///< The extent of the quad in the (x,y) plane
@@ -53,12 +54,19 @@ bool Quad::intersect(const Ray3f &ray, HitInfo &hit) const
     hit.p  = m_xform.point(p);
     hit.gn = hit.sn = normalize(m_xform.normal({0, 0, 1}));
     hit.mat         = m_material.get();
-    hit.uv = Vec2f(0.0f, 0.0f); /* TODO: Compute proper UV coordinates */
+    // TODO: Compute proper UV coordinates
+    // Keep in mind that in darts we consider the origin of uv texture space to be in the bottom-left corner
+    hit.uv = Vec2f{0.f, 0.f};
 
     ++num_quad_hits;
     return true;
 }
 
+Box3f Quad::local_bounds() const
+{
+    return Box3f{-Vec3f{m_size.x, m_size.y, 0} - Vec3f{Ray3f::epsilon},
+                 Vec3f{m_size.x, m_size.y, 0} + Vec3f{Ray3f::epsilon}};
+}
 
 
 

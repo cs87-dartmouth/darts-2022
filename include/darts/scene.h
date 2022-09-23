@@ -39,6 +39,10 @@ public:
 
     bool intersect(const Ray3f &ray, HitInfo &hit) const override;
 
+    Box3f bounds() const override
+    {
+        return m_surfaces->bounds();
+    }
 
     /// Return the background color
     Color3f background(const Ray3f &ray) const;
