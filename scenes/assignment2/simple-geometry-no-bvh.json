@@ -13,15 +13,11 @@
         "fdist": 800
     },
     "sampler": {
-        "type": "independent",
-        "samples": 1
+        "samples": 64
     },
     "background": [
         0, 0, 0
     ],
-    "accelerator": {
-        "type": "bbh"
-    },
     "materials": [
         {
             "type": "lambertian",
@@ -41,7 +37,7 @@
         {
             "type": "diffuse_light",
             "name": "light",
-            "emit": [15, 15, 15]
+            "emit": [2.6, 2.6, 2.6]
         }, {
             "type": "metal",
             "name": "chrome",
@@ -132,38 +128,30 @@
                 }
             ],
             "size": [
-                130, 130
+                530, 530
             ],
             "material": "light"
         }, {
             "type": "mesh",
             "transform": [
                 {
-                    "translate": [-1.02949, 0.006185, -0.03784]
+                    "scale": 100
                 }, {
-                    "scale": 500
-                }, {
-                    "rotate": [90, 0, 1, 0]
-                }, {
-                    "translate": [140, -277.5, 100]
+                    "translate": [140, -177.5, 100]
                 }
             ],
-            "filename": "../assets/buddha.obj",
-            "material": "glass"
+            "filename": "../assets/cylinder.obj",
+            "material": "white"
         }, {
             "type": "mesh",
             "transform": [
                 {
-                    "translate": [-1.02949, 0.006185, -0.03784]
+                    "scale": 100
                 }, {
-                    "scale": 500
-                }, {
-                    "rotate": [90, 0, 1, 0]
-                }, {
-                    "translate": [-140, -277.5, -100]
+                    "translate": [-140, -177.5, -100]
                 }
             ],
-            "filename": "../assets/buddha.obj",
+            "filename": "../assets/cone.obj",
             "material": "white"
         }
     ]
