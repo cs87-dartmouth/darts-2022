@@ -17,7 +17,7 @@ struct BBHNode;
 STAT_RATIO("BBH/Surfaces per leaf node", total_surfaces, total_leaf_nodes);
 STAT_COUNTER("BBH/Interior nodes", interior_nodes);
 STAT_COUNTER("BBH/Leaf nodes", leaf_nodes);
-STAT_COUNTER("BBH/Nodes visited", bbh_nodes_visited);
+STAT_RATIO("BBH/Nodes visited per ray", bbh_nodes_visited, total_rays);
 
 /// An axis-aligned bounding box hierarchy acceleration structure. \ingroup Surfaces
 struct BBH : public SurfaceGroup
@@ -175,6 +175,7 @@ void BBH::build()
 
 bool BBH::intersect(const Ray3f &ray_, HitInfo &hit) const
 {
+    ++total_rays;
     if (!root)
         return false;
 
