@@ -8,6 +8,7 @@
 #include <darts/factory.h>
 #include <darts/fwd.h>
 #include <darts/material.h>
+#include <darts/stats.h>
 #include <darts/transform.h>
 
 /** \addtogroup Surfaces
@@ -152,6 +153,8 @@ public:
 protected:
     shared_ptr<const Material> m_material;
 };
+
+STAT_RATIO("Intersections/Total intersection tests per ray", g_num_total_intersection_tests, g_num_traced_rays);
 
 /** @}*/
 

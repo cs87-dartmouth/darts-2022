@@ -30,6 +30,7 @@ STAT_RATIO("Intersections/Quad intersection tests per hit", num_quad_tests, num_
 
 bool Quad::intersect(const Ray3f &ray, HitInfo &hit) const
 {
+    ++g_num_total_intersection_tests;
     ++num_quad_tests;
 
     // compute ray intersection (and ray parameter), continue if not hit

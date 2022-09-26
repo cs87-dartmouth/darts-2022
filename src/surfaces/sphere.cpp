@@ -21,6 +21,7 @@ STAT_RATIO("Intersections/Sphere intersection tests per hit", num_sphere_tests, 
 
 bool Sphere::intersect(const Ray3f &ray, HitInfo &hit) const
 {
+    ++g_num_total_intersection_tests;
     ++num_sphere_tests;
     // TODO: Assignment 1: Implement ray-sphere intersection
 

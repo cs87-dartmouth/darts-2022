@@ -11,7 +11,6 @@
 #include <spdlog/sinks/stdout_sinks.h>
 
 
-STAT_COUNTER("Integrator/Traced rays", num_traced_rays);
 STAT_RATIO("Integrator/Number of NaN pixel samples", num_NaN_samples, num_pixel_samples);
 
 uint32_t Scene::random_seed = 53;
@@ -33,7 +32,7 @@ Color3f Scene::background(const Ray3f &ray) const
 
 bool Scene::intersect(const Ray3f &ray, HitInfo &hit) const
 {
-    ++num_traced_rays;
+    ++g_num_traced_rays;
     return m_surfaces->intersect(ray, hit);
 }
 

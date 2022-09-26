@@ -101,6 +101,7 @@ bool single_triangle_intersect(const Ray3f &ray, const Vec3f &p0, const Vec3f &p
                                const Vec3f *n1, const Vec3f *n2, const Vec2f *t0, const Vec2f *t1, const Vec2f *t2,
                                HitInfo &hit, const Material *material)
 {
+    ++g_num_total_intersection_tests;
     // TODO: Implement ray-triangle intersection
     // TODO: If the ray misses the triangle, you should return false
     //       You can pick any ray triangle intersection routine you like.
