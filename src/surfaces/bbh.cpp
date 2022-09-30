@@ -133,6 +133,7 @@ BBHNode::~BBHNode()
 
 bool BBHNode::intersect(const Ray3f &ray_, HitInfo &hit) const
 {
+    ++bbh_nodes_visited;
     // TODO: Implement BBH intersection, following chapter 2 of the book.
     put_your_code_here("Insert your BBH intersection code here");
     return false;

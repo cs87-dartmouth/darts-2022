@@ -1,0 +1,61 @@
+{
+    "camera": {
+        "transform": {
+            "from": [
+                24, 10, 0
+            ],
+            "at": [
+                0, 3.5, 0
+            ],
+            "up": [0, 1, 0]
+        },
+        "vfov": 20,
+        "fdist": 800,
+        "resolution": [720, 1280]
+    },
+    "sampler": {
+        "type": "independent",
+        "samples": 16
+    },
+    "background": 5,
+    "accelerator": {
+        "type": "bbh",
+        "split_method": "equal"
+    },
+    "materials": [
+        {
+            "type": "lambertian",
+            "name": "defaultMat",
+            "albedo": 0.2
+        }
+    ],
+    "surfaces": [
+        {
+            "type": "quad",
+            "transform": [
+                {
+                    "rotate": [-90, 1, 0, 0]
+                }, {
+                    "rotate": [45, 0, 1, 0]
+                }
+            ],
+            "size": [
+                150, 150
+            ],
+            "material": "defaultMat"
+        }, {
+            "type": "mesh",
+            "filename": "../assets/loewenfeld/models/smoothed.obj",
+            "transform": [
+                {
+                    "translate": [0, 222.3563, 0]
+                }, {
+                    "scale": 0.014
+                }, {
+                    "rotate": [165, 0, 1, 0]
+                }
+            ],
+            "material": "defaultMat"
+        }
+    ]
+}
