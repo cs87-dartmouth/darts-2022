@@ -16,13 +16,22 @@ def find_executable():
 
     root = os.getcwd()
     darts = ""
-    if os.path.exists(os.path.join(root, "build", "Release", "darts")):
-        darts = os.path.join(root, "build", "Release", "darts.exe")
-    elif os.path.exists(os.path.join(root, "build", "darts")):
-        darts = os.path.join(root, "build", "darts")
-    else:
-        print("Missing build dir\n")
-        return None, None
+    if (os.name == 'nt'): #windows OS
+        if os.path.exists(os.path.join(root, "build", "Release", "darts.exe")):
+            darts = os.path.join(root, "build", "Release", "darts.exe")
+        elif os.path.exists(os.path.join(root, "build", "darts.exe")):
+            darts = os.path.join(root, "build", "darts.exe")
+        else:
+            print("Missing build dir\n")
+            return None, None
+    else: # mac/linux
+        if os.path.exists(os.path.join(root, "build", "Release", "darts")):
+            darts = os.path.join(root, "build", "Release", "darts")
+        elif os.path.exists(os.path.join(root, "build", "darts")):
+            darts = os.path.join(root, "build", "darts")
+        else:
+            print("Missing build dir\n")
+            return None, None
     
     return darts, root
 
