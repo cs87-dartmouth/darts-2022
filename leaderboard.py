@@ -93,13 +93,11 @@ def main():
     print("Scenes located at:", scene_path)
     print()
 
-
-
     # Note: make this True if you want your results to be displayed on the class website leaderboard
     publicize_results = False
-    if len(sys.argv) > 2:
-        publicize_cmd = sys.argv[2]
-        if publicize_cmd == "public":
+    if len(sys.argv) > 1:
+        publicize_cmd = sys.argv[1]
+        if publicize_cmd.strip() == "public":
             publicize_results = True
 
     img_path, intersections, nodes, time_start, time_end = render_image(exe_path, scene_path)
