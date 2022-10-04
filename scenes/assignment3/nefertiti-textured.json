@@ -42,7 +42,7 @@
                 ],
                 "scale": 1.75,
                 "mapping3d": {
-                    "type": "identity",
+                    "type": "transform",
                     "transform": [
                         {
                             "rotate": [45, 0, 1, 0]

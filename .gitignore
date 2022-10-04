@@ -15,3 +15,4 @@ __pycache__
 /scenes/misc
 /scenes/meshes
 /scenes/assets
+**.nvdb
