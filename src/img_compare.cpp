@@ -4,6 +4,11 @@
     Copyright (c) 2017-2022 by Wojciech Jarosz
 */
 
+/**
+    \file
+    \brief Utility program to compare two images
+*/
+
 #include <CLI/CLI.hpp>
 #include <darts/common.h>
 #include <darts/image.h>

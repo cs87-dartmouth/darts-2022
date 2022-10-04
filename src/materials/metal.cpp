@@ -47,3 +47,8 @@ bool Metal::scatter(const Ray3f &ray, const HitInfo &hit, Color3f &attenuation, 
 
 
 DARTS_REGISTER_CLASS_IN_FACTORY(Material, Metal, "metal")
+
+/**
+    \file
+    \brief Metal Material
+*/

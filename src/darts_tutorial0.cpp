@@ -6,7 +6,7 @@
 
 /**
     \file
-    \brief A tutorial stepping through basic darts functionality
+    \brief A tutorial stepping through basic Darts functionality
 */
 
 #include <darts/common.h>

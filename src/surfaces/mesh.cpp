@@ -203,3 +203,8 @@ void Mesh::add_to_parent(Surface *parent, shared_ptr<Surface> self, const json &
 }
 
 DARTS_REGISTER_CLASS_IN_FACTORY(Surface, Mesh, "mesh")
+
+/**
+    \file
+    \brief Mesh Surface
+*/

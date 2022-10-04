@@ -49,5 +49,5 @@ DARTS_REGISTER_CLASS_IN_FACTORY(Material, Lambertian, "lambertian")
 
 /**
     \file
-    \brief Class #Lambertian
+    \brief Lambertian Material
 */

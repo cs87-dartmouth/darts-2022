@@ -6,7 +6,7 @@
 
 /**
     \file
-    \brief The main darts executable
+    \brief The main Darts executable
 */
 
 #include <CLI/CLI.hpp>

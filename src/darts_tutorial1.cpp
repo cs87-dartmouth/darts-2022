@@ -6,7 +6,7 @@
 
 /**
     \file
-    \brief A tutorial walking through writing your first path tracer in darts
+    \brief A tutorial walking through writing your first path tracer in Darts
 */
 
 #include <darts/camera.h>

@@ -34,3 +34,8 @@ bool Dielectric::scatter(const Ray3f &ray, const HitInfo &hit, Color3f &attenuat
 
 
 DARTS_REGISTER_CLASS_IN_FACTORY(Material, Dielectric, "dielectric")
+
+/**
+    \file
+    \brief Dielectric Material
+*/

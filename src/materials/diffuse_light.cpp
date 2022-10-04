@@ -38,3 +38,8 @@ Color3f DiffuseLight::emitted(const Ray3f &ray, const HitInfo &hit) const
 
 
 DARTS_REGISTER_CLASS_IN_FACTORY(Material, DiffuseLight, "diffuse_light")
+
+/**
+    \file
+    \brief DiffuseLight emissive Material
+*/

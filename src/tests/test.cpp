@@ -45,3 +45,8 @@ void run_tests(const json &j)
     }
 }
 
+
+/**
+    \dir
+    \brief Darts Test plugins source directory
+*/

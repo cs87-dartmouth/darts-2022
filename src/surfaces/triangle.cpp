@@ -179,3 +179,8 @@ Box3f Triangle::bounds() const
 
 
 DARTS_REGISTER_CLASS_IN_FACTORY(Surface, Triangle, "triangle")
+
+/**
+    \file
+    \brief Triangle Surface
+*/

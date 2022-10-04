@@ -75,5 +75,5 @@ filesystem::resolver &get_file_resolver()
 
 /**
     \dir
-    \brief main darts source directory
+    \brief main Darts source directory
 */

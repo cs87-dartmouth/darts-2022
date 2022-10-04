@@ -51,7 +51,7 @@ bool Quad::intersect(const Ray3f &ray, HitInfo &hit) const
     p.z = 0;
 
     // if hit, set intersection record values
-    hit.t  = t;
+    hit.t = t;
     hit.p  = m_xform.point(p);
     hit.gn = hit.sn = normalize(m_xform.normal({0, 0, 1}));
     hit.mat         = m_material.get();
@@ -75,5 +75,5 @@ DARTS_REGISTER_CLASS_IN_FACTORY(Surface, Quad, "quad")
 
 /**
     \file
-    \brief Class #Quad
+    \brief Quad Surface
 */

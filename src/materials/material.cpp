@@ -56,3 +56,12 @@ bool refract(const Vec3f &v_, const Vec3f &n, float eta, Vec3f &refracted)
     else
         return false;
 }
+
+/**
+    \dir
+    \brief Darts Material plugins source directory
+*/
+/**
+    \file
+    \brief Material and fresnel utility functions
+*/

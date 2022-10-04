@@ -185,7 +185,7 @@ bool BBH::intersect(const Ray3f &ray_, HitInfo &hit) const
     bool hit_something = root->intersect(ray, hit);
 
     // transform the hit information back
-    hit.p  = m_xform.point(hit.p);
+    hit.p = m_xform.point(hit.p);
     hit.gn = normalize(m_xform.normal(hit.gn));
     hit.sn = normalize(m_xform.normal(hit.sn));
     return hit_something;
@@ -201,5 +201,5 @@ DARTS_REGISTER_CLASS_IN_FACTORY(SurfaceGroup, BBH, "bbh")
 
 /**
     \file
-    \brief Class #BBH, #BBHNode, and #BBHBuildRecord
+    \brief BBH SurfaceGroup
 */

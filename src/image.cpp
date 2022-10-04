@@ -77,7 +77,7 @@ bool is_stb_image(const string &filename)
 
 } // namespace
 
-bool Image3f::load(const string &filename)
+bool Image3f::load(const string &filename, bool raw)
 {
     string errors_stb, errors_exr;
 
@@ -104,7 +104,7 @@ bool Image3f::load(const string &filename)
                 {
                     auto c = Color3f(float_data[3 * (x + y * w) + 0], float_data[3 * (x + y * w) + 1],
                                      float_data[3 * (x + y * w) + 2]);
-                    if (!is_HDR)
+                    if (!is_HDR && !raw)
                         c = to_linear_RGB(c);
                     (*this)(x, y) = c;
                 }

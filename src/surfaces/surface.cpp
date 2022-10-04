@@ -24,3 +24,13 @@ XformedSurfaceWithMaterial::XformedSurfaceWithMaterial(const json &j) : XformedS
 }
 
 
+
+/**
+    \file
+    \brief Surface, XformedSurface, and XformedSurfaceWithMaterial
+*/
+
+/**
+    \dir
+    \brief Darts Surface plugins source directory
+*/

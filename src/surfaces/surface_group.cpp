@@ -61,4 +61,10 @@ Box3f SurfaceGroup::local_bounds() const
 }
 
 
+
 DARTS_REGISTER_CLASS_IN_FACTORY(Surface, SurfaceGroup, "group")
+
+/**
+    \file
+    \brief SurfaceGroup Surface
+*/

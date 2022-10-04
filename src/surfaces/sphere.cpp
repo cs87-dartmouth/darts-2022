@@ -61,5 +61,5 @@ DARTS_REGISTER_CLASS_IN_FACTORY(Surface, Sphere, "sphere")
 
 /**
     \file
-    \brief Class #Sphere
+    \brief Sphere Surface
 */
