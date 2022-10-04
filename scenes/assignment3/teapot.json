@@ -45,7 +45,7 @@
             "name": "teapot",
             "albedo": {
                 "type": "image",
-                "filename": "../assets/grid.png"
+                "filename": "../assets/checker-map.png"
             }
         }
     ],

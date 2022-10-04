@@ -53,41 +53,59 @@
             "albedo": 1,
             "roughness": 0
         }, {
-            "type": "fresnel_blend",
+            "type": "blend",
             "name": "glossy0",
-            "ior": 1.0,
-            "refr": "base",
-            "refl": "varnish"
+            "amount": {
+                "type": "fresnel",
+                "ior": 1.0
+            },
+            "a": "base",
+            "b": "varnish"
         }, {
-            "type": "fresnel_blend",
+            "type": "blend",
             "name": "glossy1",
-            "ior": 1.2,
-            "refr": "base",
-            "refl": "varnish"
+            "amount": {
+                "type": "fresnel",
+                "ior": 1.2
+            },
+            "a": "base",
+            "b": "varnish"
         }, {
-            "type": "fresnel_blend",
+            "type": "blend",
             "name": "glossy2",
-            "ior": 1.5,
-            "refr": "base",
-            "refl": "varnish"
+            "amount": {
+                "type": "fresnel",
+                "ior": 1.5
+            },
+            "a": "base",
+            "b": "varnish"
         }, {
-            "type": "fresnel_blend",
+            "type": "blend",
             "name": "glossy3",
-            "ior": 2.5,
-            "refr": "base",
-            "refl": "varnish"
+            "amount": {
+                "type": "fresnel",
+                "ior": 2.5
+            },
+            "a": "base",
+            "b": "varnish"
         }, {
-            "type": "fresnel_blend",
+            "type": "blend",
             "name": "glossy4",
-            "ior": 4.5,
-            "refr": "base",
-            "refl": "varnish"
+            "amount": {
+                "type": "fresnel",
+                "ior": 4.5
+            },
+            "a": "base",
+            "b": "varnish"
         }, {
-            "type": "fresnel_blend",
+            "type": "blend",
             "name": "glossy5",
-            "ior": 15,
-            "refr": "base",
-            "refl": "varnish"
+            "amount": {
+                "type": "fresnel",
+                "ior": 15
+            },
+            "a": "base",
+            "b": "varnish"
         }
     ],
     "surfaces": [

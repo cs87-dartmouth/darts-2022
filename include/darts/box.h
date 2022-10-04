@@ -107,10 +107,12 @@ struct Box
     /**
         Check whether a #Ray intersects this #Box
 
-        \param ray 		The ray along which to check for intersection
-        \return 		\c true if there is an intersection
+        \param ray      The ray along which to check for intersection
+        \param hitt0    If not null, stores the lower bound of the intersection interval
+        \param hitt1    If not null, stores the upper bound of the intersection interval
+        \return         \c true if there is an intersection
     */
-    bool intersect(const Ray<N, T> &ray) const
+    bool intersect(const Ray<N, T> &ray, T *hitt0 = nullptr, T *hitt1 = nullptr) const
     {
         T minT = ray.mint;
         T maxT = ray.maxt;
@@ -128,6 +130,10 @@ struct Box
             if (maxT < minT)
                 return false;
         }
+        if (hitt0)
+            *hitt0 = minT;
+        if (hitt1)
+            *hitt1 = maxT;
         return true;
     }
 };

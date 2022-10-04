@@ -45,10 +45,13 @@
             }
         }, {
             "name": "statue",
-            "type": "fresnel_blend",
-            "ior": 1.5,
-            "refr": "stone",
-            "refl": {
+            "type": "blend",
+            "amount": {
+                "type": "fresnel",
+                "ior": 1.5
+            },
+            "a": "stone",
+            "b": {
                 "type": "metal",
                 "albedo": 1.0,
                 "roughness": 0.1

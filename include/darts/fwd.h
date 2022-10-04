@@ -29,7 +29,7 @@ struct Transform;
 
 /**
     \dir
-    \brief main darts include directory
+    \brief main Darts include directory
 
     \file
     \brief Various forward declaration

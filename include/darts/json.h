@@ -42,8 +42,6 @@ void from_json(const json &j, mat<T, 4, 4> &m)
         at   = j.value("at", at) + j.value("to", at);
         up   = j.value("up", up);
 
-        spdlog::info("up vector is {}", up);
-
         Vec3<T> dir   = normalize(from - at);
         Vec3<T> left  = normalize(cross(up, dir));
         Vec3<T> newUp = normalize(cross(dir, left));

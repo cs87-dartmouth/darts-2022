@@ -15,7 +15,7 @@
     },
     "sampler": {
         "type": "independent",
-        "samples": 100
+        "samples": 512
     },
     "background": [
         0, 0, 0
@@ -44,95 +44,53 @@
             "name": "light",
             "emit": 1
         }, {
+            "type": "lambertian",
+            "name": "base",
+            "albedo": [0.15, 0.15, 0.65]
+        }, {
+            "type": "metal",
+            "name": "varnish",
+            "albedo": 1,
+            "roughness": 0
+        }, {
             "type": "blend",
             "name": "glossy0",
-            "amount": 0.0,
-            "a": {
-                "type": "lambertian",
-                "albedo": [0.15, 0.15, 0.65]
+            "amount": {
+                "type": "fresnel",
+                "ior": 1.0
             },
-            "b": {
-                "type": "metal",
-                "albedo": [
-                    0.8, 0.8, 0.8
-                ],
-                "roughness": 0.0
-            }
+            "a": "base",
+            "b": "varnish"
         }, {
             "type": "blend",
             "name": "glossy1",
-            "amount": 0.2,
-            "a": {
-                "type": "lambertian",
-                "albedo": [0.15, 0.15, 0.65]
-            },
-            "b": {
-                "type": "metal",
-                "albedo": [
-                    0.8, 0.8, 0.8
-                ],
-                "roughness": 0.0
-            }
+            "amount": 0.00824,
+            "a": "base",
+            "b": "varnish"
         }, {
             "type": "blend",
             "name": "glossy2",
-            "amount": 0.4,
-            "a": {
-                "type": "lambertian",
-                "albedo": [0.15, 0.15, 0.65]
-            },
-            "b": {
-                "type": "metal",
-                "albedo": [
-                    0.8, 0.8, 0.8
-                ],
-                "roughness": 0.0
-            }
+            "amount": 0.04,
+            "a": "base",
+            "b": "varnish"
         }, {
             "type": "blend",
             "name": "glossy3",
-            "amount": 0.6,
-            "a": {
-                "type": "lambertian",
-                "albedo": [0.15, 0.15, 0.65]
-            },
-            "b": {
-                "type": "metal",
-                "albedo": [
-                    0.8, 0.8, 0.8
-                ],
-                "roughness": 0.0
-            }
+            "amount": 0.18367347,
+            "a": "base",
+            "b": "varnish"
         }, {
             "type": "blend",
             "name": "glossy4",
-            "amount": 0.8,
-            "a": {
-                "type": "lambertian",
-                "albedo": [0.15, 0.15, 0.65]
-            },
-            "b": {
-                "type": "metal",
-                "albedo": [
-                    0.8, 0.8, 0.8
-                ],
-                "roughness": 0.0
-            }
+            "amount": 0.40495868,
+            "a": "base",
+            "b": "varnish"
         }, {
             "type": "blend",
             "name": "glossy5",
-            "amount": 1.0,
-            "a": {
-                "type": "lambertian",
-                "albedo": [0.15, 0.15, 0.65]
-            },
-            "b": {
-                "type": "metal",
-                "albedo": [
-                    0.8, 0.8, 0.8
-                ],
-                "roughness": 0.0
-            }
+            "amount": 0.765625,
+            "a": "base",
+            "b": "varnish"
         }
     ],
     "surfaces": [
@@ -158,7 +116,7 @@
                 }
             ],
             "size": [
-                1300, 555
+                1300, 2555
             ],
             "material": "white"
         },
@@ -172,7 +130,7 @@
                 }
             ],
             "size": [
-                1300, 555
+                1300, 2555
             ],
             "material": "white"
         },
@@ -186,7 +144,7 @@
                 }
             ],
             "size": [
-                555, 555
+                2555, 2555
             ],
             "material": "green"
         }, {
@@ -199,7 +157,7 @@
                 }
             ],
             "size": [
-                555, 555
+                2555, 2555
             ],
             "material": "red"
         }, {

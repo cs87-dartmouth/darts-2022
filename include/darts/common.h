@@ -5,6 +5,11 @@
 */
 #pragma once
 
+#if defined(_WIN32)
+#define _CRT_SECURE_NO_WARNINGS
+#pragma warning(disable : 4996) // strncpy and sscanf not secure
+#endif
+
 #include <cstdio> // for size_t
 #include <darts/fwd.h>
 #include <darts/math.h>

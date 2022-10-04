@@ -8,6 +8,13 @@
 #include "linalg.h"
 #include <algorithm>
 #include <fmt/format.h>
+#if defined(_WIN32)
+#pragma warning(disable : 4305) // double constant assigned to float
+#pragma warning(disable : 4244) // int -> float conversion
+#pragma warning(disable : 4843) // double -> float conversion
+#pragma warning(disable : 4267) // size_t -> int
+#pragma warning(disable : 4838) // another double -> int
+#endif
 
 /** \addtogroup Math
     @{

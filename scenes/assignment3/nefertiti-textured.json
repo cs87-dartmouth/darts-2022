@@ -41,13 +41,16 @@
                     0.325, 0.31, 0.25
                 ],
                 "scale": 1.75,
-                "transform": [
-                    {
-                        "rotate": [45, 0, 1, 0]
-                    }, {
-                        "translate": [0, -0.001, 0]
-                    }
-                ]
+                "mapping3d": {
+                    "type": "identity",
+                    "transform": [
+                        {
+                            "rotate": [45, 0, 1, 0]
+                        }, {
+                            "translate": [0, -0.001, 0]
+                        }
+                    ]
+                }
             }
         }
     ],

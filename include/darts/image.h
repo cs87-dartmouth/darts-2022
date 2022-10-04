@@ -46,9 +46,10 @@ public:
         Load an image from file
 
         \param filename	The filename
+        \param raw      If set to true, this will bypass the sRGB to linear conversion
         \return 		True if the file loaded successfully
-     */
-    bool load(const std::string &filename);
+    */
+    bool load(const std::string &filename, bool raw = false);
 
     /**
         Save an image to the specified filename
