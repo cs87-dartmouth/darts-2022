@@ -22,8 +22,8 @@
         "type": "bbh"
     },
     "integrator": {
-        "type": "path_tracer_mats",
-        "max_bounces": 1
+        "type": "path tracer mats",
+        "max bounces": 1
     },
     "materials": [
         {

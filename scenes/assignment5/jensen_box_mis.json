@@ -23,8 +23,8 @@
         "type": "bbh"
     },
     "integrator": {
-        "type": "path_tracer_mis",
-        "max_bounces": 64,
+        "type": "path tracer mis",
+        "max bounces": 64,
         "recursive": false,
         "russian roulette": true,
         "power": 1

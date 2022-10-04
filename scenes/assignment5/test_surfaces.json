@@ -18,8 +18,8 @@
                     ]
                 ],
                 "material": {
-                    "type": "lambertian",
-                    "albedo": 1.0
+                    "type": "diffuse_light",
+                    "emit": 1.0
                 }
             }
         }, {
@@ -38,8 +38,8 @@
                     "y": [0, 1, 1]
                 },
                 "material": {
-                    "type": "lambertian",
-                    "albedo": 1.0
+                    "type": "diffuse_light",
+                    "emit": 1.0
                 }
             }
         }, {
@@ -52,8 +52,8 @@
                     "o": [0, 3.2, 0.4]
                 },
                 "material": {
-                    "type": "lambertian",
-                    "albedo": 1.0
+                    "type": "diffuse_light",
+                    "emit": 1.0
                 }
             }
         }, {
@@ -76,8 +76,8 @@
                             ]
                         ],
                         "material": {
-                            "type": "lambertian",
-                            "albedo": 1.0
+                            "type": "diffuse_light",
+                            "emit": 1.0
                         }
                     }, {
                         "type": "quad",
@@ -92,8 +92,8 @@
                             "y": [0, 1, 1]
                         },
                         "material": {
-                            "type": "lambertian",
-                            "albedo": 1.0
+                            "type": "diffuse_light",
+                            "emit": 1.0
                         }
                     }, {
                         "type": "sphere",
@@ -102,15 +102,15 @@
                             "o": [0, 2.4, 3.2]
                         },
                         "material": {
-                            "type": "lambertian",
-                            "albedo": 1.0
+                            "type": "diffuse_light",
+                            "emit": 1.0
                         }
                     }, {
                         "type": "mesh",
                         "filename": "../assets/cube.obj",
                         "material": {
-                            "type": "lambertian",
-                            "albedo": 1.0
+                            "type": "diffuse_light",
+                            "emit": 1.0
                         },
                         "transform": [
                             {

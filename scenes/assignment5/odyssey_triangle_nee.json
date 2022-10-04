@@ -22,8 +22,8 @@
         "type": "bbh"
     },
     "integrator": {
-        "type": "path_tracer_nee",
-        "max_bounces": 1
+        "type": "path tracer nee",
+        "max bounces": 1
     },
     "surfaces": [
         {
