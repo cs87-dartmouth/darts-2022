@@ -53,11 +53,6 @@ class DartsExporter(bpy.types.Operator, ExportHelper):
         description="Uncheck this to write out the Darts scene file, but not write out any OBJs to disk",
         default=True,
     )
-    write_texture_files: BoolProperty(
-        name="Write textures",
-        description="Uncheck this to write out the Darts scene file, but not write out any textures to disk",
-        default=True,
-    )
 
     # Scene-wide settings
     integrator: EnumProperty(
@@ -155,6 +150,21 @@ class DartsExporter(bpy.types.Operator, ExportHelper):
              "Convert Blender's `Glossy` material to a `conductor` or `rough conductor` Darts material"),
         ),
         default="rough conductor",
+    )
+    write_texture_files: BoolProperty(
+        name="Write textures",
+        description="Uncheck this to write out the Darts scene file, but not write out any textures to disk",
+        default=True,
+    )
+    force_two_sided: BoolProperty(
+        name="Force two-sided materials",
+        description="Wraps all opaque materials in a 'two sided' adapter. Otherwise the back side of opaque materials will be black in Darts by default.",
+        default=True,
+    )
+    use_normal_maps: BoolProperty(
+        name="Use normal maps",
+        description="Wraps the Darts material in a 'normal map' or 'bump map' adapter if the Blender Material has a textured 'Normal'.",
+        default=True,
     )
 
     def execute(self, context):
@@ -286,6 +296,8 @@ class DARTS_PT_export_materials(bpy.types.Panel):
         sublayout = layout.column()
         sublayout.enabled = (operator.material_mode == 'CONVERT')
         sublayout.prop(operator, "write_texture_files")
+        sublayout.prop(operator, "use_normal_maps")
+        sublayout.prop(operator, "force_two_sided")
         sublayout.prop(operator, 'glossy_mode')
 
 

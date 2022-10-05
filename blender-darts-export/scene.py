@@ -33,7 +33,9 @@ class SceneWriter:
                  mesh_mode,
                  use_triangles,
                  material_mode,
-                 glossy_mode):
+                 glossy_mode,
+                 use_normal_maps,
+                 force_two_sided):
         self.context = context
         self.report = report
 
@@ -54,11 +56,13 @@ class SceneWriter:
         self.use_triangles = use_triangles
 
         self.material_mode = material_mode
+        self.write_texture_files = write_texture_files
+        self.use_normal_maps = use_normal_maps
+        self.force_two_sided = force_two_sided
+        self.glossy_mode = glossy_mode
 
         self.filepath = filepath
         self.directory = os.path.dirname(filepath)
-        self.glossy_mode = glossy_mode
-        self.write_texture_files = write_texture_files
         self.exported_mats = {}
 
     def color(self, value):

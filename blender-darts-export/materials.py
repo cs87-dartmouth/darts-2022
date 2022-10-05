@@ -6,6 +6,107 @@ RoughnessMode = {'GGX': 'ggx', 'BECKMANN': 'beckmann',
                  'ASHIKHMIN_SHIRLEY': 'blinn', 'MULTI_GGX': 'ggx'}
 
 
+def convert_background(ctx, world):
+    """
+    convert environment lighting. Constant emitter and envmaps are supported
+
+    Params
+    ------
+    surface_node: the final node of the shader
+    ignore_background: whether we want to export blender's default background or not
+    """
+
+    try:
+        if world is None:
+            raise NotImplementedError('No Blender world to export')
+
+        if world.use_nodes and world.node_tree is not None:
+
+            output_node_id = 'World Output'
+            if output_node_id not in world.node_tree.nodes:
+                raise NotImplementedError(
+                    'Failed to export world: Cannot find world output node')
+
+            output_node = world.node_tree.nodes[output_node_id]
+            if not output_node.inputs['Surface'].is_linked:
+                return 0
+
+            surface_node = output_node.inputs['Surface'].links[0].from_node
+            if 'Strength' not in surface_node.inputs:
+                raise NotImplementedError(
+                    "Expecting a material with a 'Strength' parameter for a background")
+
+            if surface_node.inputs['Strength'].is_linked:
+                raise NotImplementedError(
+                    "Only default emitter 'Strength' value is supported")
+
+            strength = surface_node.inputs['Strength'].default_value
+            if strength == 0:  # Don't add an emitter if it emits nothing
+                ctx.report({'INFO'}, 'Ignoring envmap with zero strength.')
+                return 0
+
+            if surface_node.bl_idname in ['ShaderNodeBackground', 'ShaderNodeEmission']:
+                socket = surface_node.inputs['Color']
+                if socket.is_linked:
+                    color_node = socket.links[0].from_node
+                    if color_node.bl_idname == 'ShaderNodeTexEnvironment':
+                        params = {
+                            'type': 'envmap',
+                            'filename': ctx.export_texture(color_node.image),
+                            'scale': strength
+                        }
+
+                        if color_node.inputs['Vector'].is_linked:
+                            vector_node = color_node.inputs['Vector'].links[0].from_node
+                            if vector_node.bl_idname != 'ShaderNodeMapping':
+                                raise NotImplementedError(
+                                    f"Node: {vector_node.bl_idname} is not supported. Only a mapping node is supported")
+                            if not vector_node.inputs['Vector'].is_linked:
+                                raise NotImplementedError(
+                                    f"The node {vector_node.bl_idname} should be linked with a Texture coordinate node")
+                            coord_node = vector_node.inputs['Vector'].links[0].from_node
+                            coord_socket = vector_node.inputs['Vector'].links[0].from_socket
+                            if coord_node.bl_idname != 'ShaderNodeTexCoord':
+                                raise NotImplementedError(
+                                    f"Unsupported node type: {coord_node.bl_idname}")
+                            if coord_socket.name != 'Generated':
+                                raise NotImplementedError(
+                                    "Link should come from 'Generated'")
+                            if vector_node.inputs['Rotation'].is_linked:
+                                raise NotImplementedError(
+                                    "Rotation inputs shouldn't be linked")
+                            params['transform'] = ctx.transform_matrix(
+                                vector_node.inputs['Rotation'].default_value.to_matrix())
+
+                        return params
+                    elif color_node.bl_idname == 'ShaderNodeRGB':
+                        color = color_node.color
+                    else:
+                        raise NotImplementedError(
+                            f"Node type {color_node.bl_idname} is not supported. Consider using an environment texture or RGB node instead")
+                else:
+                    color = socket.default_value
+
+                # Not an envmap
+                radiance = [x * strength for x in color[:3]]
+                if np.sum(radiance) == 0:
+                    ctx.report(
+                        {'INFO'}, "Ignoring background emitter with zero emission.")
+                    return 0
+                return ctx.color(radiance)
+            else:
+                raise NotImplementedError(
+                    f"Only Background and Emission nodes are supported as final nodes for background export, got '{surface_node.name}'")
+        else:
+            # Single color field for emission, no nodes
+            return ctx.color(world.color)
+
+    except NotImplementedError as err:
+        ctx.report(
+            {'WARNING'}, f"Error while converting background: {err.args[0]}. Using default.")
+        return 5
+
+
 def export_texture_node(ctx, tex_node):
     params = {
         'type': 'image'
@@ -66,44 +167,53 @@ def convert_color_texture_node(ctx, socket):
                     f"Darts only supports tangent-space normal maps")
             params = export_texture_node(ctx,
                                          node.inputs['Color'].links[0].from_node)
-
+        elif node.bl_idname == "ShaderNodeBump":
+            params = export_texture_node(ctx,
+                                         node.inputs['Height'].links[0].from_node)
+        elif node.bl_idname == "ShaderNodeDisplacement":
+            if node.space != 'OBJECT':
+                raise NotImplementedError(
+                    "Darts only supports object-space displacement/bump maps")
+            params = export_texture_node(ctx,
+                                         node.inputs['Height'].links[0].from_node)
         elif node.bl_idname == "ShaderNodeRGB":
             # input rgb node
             params = ctx.color(node.color)
         else:
             raise NotImplementedError(
-                f"Node type {node.bl_idname} is not supported. Only texture & RGB nodes are supported for color inputs")
+                f"Color node type {node.bl_idname} is not supported")
     else:
         params = ctx.color(socket.default_value)
 
     return params
 
 
-def convert_diffuse_materials_cycles(ctx, current_node):
-    params = {}
+def make_two_sided(ctx, bsdf):
+    if ctx.force_two_sided:
+        return {
+            'type': 'two sided',
+            'both sides': bsdf
+        }
+    else:
+        return bsdf
+
+
+def convert_diffuse_material(ctx, current_node):
     if current_node.inputs['Roughness'].is_linked or current_node.inputs['Roughness'].default_value != 0.0:
         ctx.report(
-            {'WARNING'}, f"Rough diffuse BSDF '{current_node.name}' is currently not supported in Darts. Ignoring alpha parameter.")
-
-    params.update({
-        'type': 'lambertian'
-    })
-
-    color = convert_color_texture_node(ctx, current_node.inputs['Color'])
-
-    if color is not None:
-        params.update({
-            'albedo': color,
-        })
-
-    return params
+            {'WARNING'}, f"Rough diffuse BSDF '{current_node.name}' is currently not supported in Darts. Ignoring 'Roughness' parameter.")
+    params = {
+        'type': 'lambertian',
+        'albedo': convert_color_texture_node(ctx, current_node.inputs['Color'])
+    }
+    return make_two_sided(ctx, params)
 
 
 def roughness_to_blinn_exponent(alpha):
     return max(2.0 / (alpha * alpha) - 1.0, 0.0)
 
 
-def convert_glossy_materials_cycles(ctx, current_node):
+def convert_glossy_material(ctx, current_node):
     params = {}
 
     if ctx.glossy_mode == 'rough conductor':
@@ -156,10 +266,10 @@ def convert_glossy_materials_cycles(ctx, current_node):
             'albedo': convert_color_texture_node(ctx, current_node.inputs['Color']),
         })
 
-    return params
+    return make_two_sided(ctx, params)
 
 
-def convert_glass_materials_cycles(ctx, current_node):
+def convert_glass_material(ctx, current_node):
     params = {}
 
     if current_node.inputs['IOR'].is_linked:
@@ -181,31 +291,25 @@ def convert_glass_materials_cycles(ctx, current_node):
         params['type'] = 'thin dielectric' if ior == 1.0 else 'dielectric'
 
     params['ior'] = ior
-
-    specular_transmittance = convert_color_texture_node(ctx,
-                                                        current_node.inputs['Color'])
-
-    if specular_transmittance is not None:
-        params.update({
-            'specular_transmittance': specular_transmittance,
-        })
+    params['reflectance'] = params['transmittance'] = convert_color_texture_node(
+        ctx, current_node.inputs['Color'])
 
     return params
 
 
-def convert_emitter_materials_cycles(ctx, current_node):
-    if current_node.inputs["Strength"].is_linked:
+def convert_emitter_material(ctx, current_node):
+    if current_node.inputs['Strength'].is_linked:
         raise NotImplementedError(
             "Only default emitter strength value is supported")
     else:
-        radiance = current_node.inputs["Strength"].default_value
+        radiance = current_node.inputs['Strength'].default_value
 
     if current_node.inputs['Color'].is_linked:
         raise NotImplementedError(
             "Only default emitter color is supported")  # TODO: rgb input
     else:
         radiance = [
-            x * radiance for x in current_node.inputs["Color"].default_value[:]]
+            x * radiance for x in current_node.inputs['Color'].default_value[:]]
 
     if np.sum(radiance) == 0:
         ctx.report(
@@ -218,7 +322,15 @@ def convert_emitter_materials_cycles(ctx, current_node):
     }
 
 
-def convert_mix_materials_cycles(ctx, current_node):
+def convert_transparent_material(ctx, current_node):
+
+    return {
+        'type': 'transparent',
+        'color': convert_color_texture_node(ctx, current_node.inputs['Color'])
+    }
+
+
+def convert_mix_material(ctx, current_node):
     if not current_node.inputs[1].is_linked or not current_node.inputs[2].is_linked:
         raise NotImplementedError("Mix shader is not linked to two materials")
 
@@ -233,22 +345,63 @@ def convert_mix_materials_cycles(ctx, current_node):
     }
 
 
+def wrap_with_bump_or_normal_map(ctx, node, nested):
+    if ctx.use_normal_maps and 'Normal' in node.inputs and node.inputs['Normal'].is_linked:
+        normal_socket = node.inputs['Normal']
+        normal_node = normal_socket.links[0].from_node
+
+        if normal_node.bl_idname == "ShaderNodeNormalMap":
+            bump = False
+            wrapper_type = 'normal map'
+            texture_name = 'normals'
+        elif normal_node.bl_idname == "ShaderNodeBump":
+            bump = True
+            wrapper_type = 'bump map'
+            texture_name = 'height'
+        else:
+            raise NotImplementedError(
+                "Only normal map and bump nodes supported")
+
+        # wrap the material in a normal map adaptor
+        wrapper = {
+            'type': wrapper_type
+        }
+
+        if 'name' in nested:
+            wrapper['name'] = nested.pop('name')
+
+        wrapper[texture_name] = convert_color_texture_node(ctx, normal_socket)
+
+        if normal_node.inputs['Strength'].is_linked:
+            raise NotImplementedError(
+                "Only default normal map strength value is supported")
+        else:
+            wrapper['strength'] = normal_node.inputs['Strength'].default_value
+
+        wrapper['nested'] = nested
+
+        return wrapper
+    else:
+        return nested
+
+
 def cycles_material_to_dict(ctx, node, name=None):
     ''' Converting one material from Blender to Darts format'''
 
     cycles_converters = {
-        "ShaderNodeBsdfDiffuse": convert_diffuse_materials_cycles,
-        'ShaderNodeBsdfGlossy': convert_glossy_materials_cycles,
-        'ShaderNodeBsdfGlass': convert_glass_materials_cycles,
-        'ShaderNodeMixShader': convert_mix_materials_cycles,
-        'ShaderNodeEmission': convert_emitter_materials_cycles,
+        "ShaderNodeBsdfDiffuse": convert_diffuse_material,
+        'ShaderNodeBsdfGlossy': convert_glossy_material,
+        'ShaderNodeBsdfGlass': convert_glass_material,
+        'ShaderNodeMixShader': convert_mix_material,
+        'ShaderNodeEmission': convert_emitter_material,
+        'ShaderNodeBsdfTransparent': convert_transparent_material,
     }
 
     # ctx.report({'INFO'}, f"Type = {node.type} and bl_idname = {node.bl_idname}")
 
     params = {}
     if name is not None:
-        params["name"] = material_name(name)
+        params['name'] = material_name(name)
 
     if node.bl_idname in cycles_converters:
         params.update(cycles_converters[node.bl_idname](ctx, node))
@@ -256,30 +409,7 @@ def cycles_material_to_dict(ctx, node, name=None):
         raise NotImplementedError(
             f"Node type: {node.bl_idname} is not supported in Darts")
 
-    if 'Normal' in node.inputs and node.inputs['Normal'].is_linked:
-        normal_socket = node.inputs['Normal']
-
-        # wrap the material in a normal map adaptor
-        normal_map = {
-            'type': 'normal map'
-        }
-        if name is not None:
-            normal_map['name'] = params.pop('name')
-        normal_map['normals'] = convert_color_texture_node(ctx, normal_socket)
-
-        if normal_socket.is_linked:
-            normal_node = normal_socket.links[0].from_node
-            if normal_node.inputs["Strength"].is_linked:
-                raise NotImplementedError(
-                    "Only default normal map strength value is supported")
-            else:
-                normal_map['strength'] = normal_node.inputs["Strength"].default_value
-
-        normal_map['nested'] = params
-
-        return normal_map
-    else:
-        return params
+    return wrap_with_bump_or_normal_map(ctx, node, params)
 
 
 def material_name(b_name):
@@ -309,9 +439,12 @@ def convert_material(ctx, b_mat):
             output_node_id = 'Material Output'
             if output_node_id in b_mat.node_tree.nodes:
                 output_node = b_mat.node_tree.nodes[output_node_id]
-                surface_node = output_node.inputs["Surface"].links[0].from_node
+                surface_node = output_node.inputs['Surface'].links[0].from_node
                 mat_params = cycles_material_to_dict(ctx,
                                                      surface_node, b_mat.name_full)
+                if 'Displacement' in output_node.inputs and output_node.inputs['Displacement'].is_linked:
+                    raise NotImplementedError(
+                        "Displacement maps are not supported. Consider converting them to bump maps first")
             else:
                 ctx.report(
                     {'WARNING'}, f"Export of material '{b_mat.name}' failed: Cannot find material output node. Exporting a dummy material instead.")
@@ -324,7 +457,7 @@ def convert_material(ctx, b_mat):
         mat_params = get_dummy_material(ctx, b_mat.name_full)
         mat_params.update({'albedo': ctx.color(b_mat.diffuse_color)})
 
-    ctx.exported_mats[mat_params["name"]] = mat_params
+    ctx.exported_mats[mat_params['name']] = mat_params
     return mat_params
 
 
@@ -369,99 +502,3 @@ def export_materials(ctx, meshes):
                 mat_json.append(mat_params)
 
     return mat_json
-
-
-def convert_background(ctx, world):
-    """
-    convert environment lighting. Constant emitter and envmaps are supported
-
-    Params
-    ------
-    surface_node: the final node of the shader
-    ignore_background: whether we want to export blender's default background or not
-    """
-
-    try:
-        if world is None:
-            ctx.report({'INFO'}, 'No Blender world to export.')
-            return 0
-
-        if world.use_nodes and world.node_tree is not None:
-            output_node_id = 'World Output'
-            if output_node_id not in world.node_tree.nodes:
-                ctx.report(
-                    {'WARNING'}, 'Failed to export world: Cannot find world output node.')
-                return 0
-            output_node = world.node_tree.nodes[output_node_id]
-            if not output_node.inputs["Surface"].is_linked:
-                return 0
-            surface_node = output_node.inputs["Surface"].links[0].from_node
-            if surface_node.inputs['Strength'].is_linked:
-                raise NotImplementedError(
-                    "Only default emitter strength value is supported")  # TODO: value input
-            strength = surface_node.inputs['Strength'].default_value
-
-            if strength == 0:  # Don't add an emitter if it emits nothing
-                ctx.report({'INFO'}, 'Ignoring envmap with zero strength.')
-                return 0
-
-            if surface_node.bl_idname in ['ShaderNodeBackground', 'ShaderNodeEmission']:
-                socket = surface_node.inputs["Color"]
-                if socket.is_linked:
-                    color_node = socket.links[0].from_node
-                    if color_node.bl_idname == 'ShaderNodeTexEnvironment':
-                        params = {
-                            'type': 'envmap',
-                            'filename': ctx.export_texture(color_node.image),
-                            'scale': strength
-                        }
-
-                        if color_node.inputs["Vector"].is_linked:
-                            vector_node = color_node.inputs["Vector"].links[0].from_node
-                            if vector_node.bl_idname != 'ShaderNodeMapping':
-                                raise NotImplementedError(
-                                    f"Node: {vector_node.bl_idname} is not supported. Only a mapping node is supported")
-                            if not vector_node.inputs["Vector"].is_linked:
-                                raise NotImplementedError(
-                                    f"The node {vector_node.bl_idname} should be linked with a Texture coordinate node")
-                            coord_node = vector_node.inputs["Vector"].links[0].from_node
-                            coord_socket = vector_node.inputs["Vector"].links[0].from_socket
-                            if coord_node.bl_idname != 'ShaderNodeTexCoord':
-                                raise NotImplementedError(
-                                    f"Unsupported node type: {coord_node.bl_idname}")
-                            if coord_socket.name != 'Generated':
-                                raise NotImplementedError(
-                                    "Link should come from 'Generated'")
-                            if vector_node.inputs["Rotation"].is_linked:
-                                raise NotImplementedError(
-                                    "Rotation inputs shouldn't be linked")
-                            params['transform'] = ctx.transform_matrix(
-                                vector_node.inputs["Rotation"].default_value.to_matrix())
-
-                        return params
-                    elif color_node.bl_idname == 'ShaderNodeRGB':
-                        color = color_node.color
-                    else:
-                        raise NotImplementedError(
-                            f"Node type {color_node.bl_idname} is not supported. Consider using an environment texture or RGB node instead")
-                else:
-                    color = socket.default_value
-
-                # Not an envmap
-                radiance = [x * strength for x in color[:3]]
-                if np.sum(radiance) == 0:
-                    ctx.report(
-                        {'INFO'}, "Ignoring background emitter with zero emission.")
-                    return 0
-                return ctx.color(radiance)
-            else:
-                raise NotImplementedError(
-                    f"Only Background and Emission nodes are supported as final nodes for background export, got '{surface_node.name}'")
-        else:
-            # Single color field for emission, no nodes
-            return ctx.color(world.color)
-
-    except NotImplementedError as err:
-        ctx.report(
-            {'WARNING'}, f"Error while converting background: {err.args[0]}. Using default.")
-        return 5

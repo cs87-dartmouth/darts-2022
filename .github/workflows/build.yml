@@ -16,6 +16,11 @@ on:
 env:
   CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
 
+# Allow one concurrent build
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: ${{ matrix.config.name }}

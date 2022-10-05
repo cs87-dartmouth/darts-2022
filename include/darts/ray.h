@@ -37,12 +37,8 @@ struct Ray
     }
 
     /// Construct a new ray
-    Ray(const Vec<N, T> &o, const Vec<N, T> &d) : o(o), d(d), mint(epsilon), maxt(infinity)
-    {
-    }
-
-    /// Construct a new ray
-    Ray(const Vec<N, T> &o, const Vec<N, T> &d, T mint, T maxt) : o(o), d(d), mint(mint), maxt(maxt)
+    Ray(const Vec<N, T> &o, const Vec<N, T> &d, T mint = Ray::epsilon, T maxt = Ray::infinity) :
+        o(o), d(d), mint(mint), maxt(maxt)
     {
     }
 

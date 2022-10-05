@@ -55,10 +55,7 @@
         }, {
             "type": "blend",
             "name": "glossy0",
-            "amount": {
-                "type": "fresnel",
-                "ior": 1.0
-            },
+            "amount": 0.0,
             "a": "base",
             "b": "varnish"
         }, {
