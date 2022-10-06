@@ -4,28 +4,30 @@ import bpy
 
 def write_obj(ctx, obj_name):
     if ctx.write_obj_files:
-        # new, faster C++ OBJ exporter
-        bpy.ops.wm.obj_export(filepath=os.path.join(ctx.directory, 'meshes', obj_name + ".obj"),
-                              export_selected_objects=True,
-                              apply_modifiers=ctx.use_mesh_modifiers,
-                              export_normals=ctx.use_normals,
-                              export_uv=ctx.use_uvs,
-                              export_materials=ctx.material_mode != "OFF",
-                              export_triangulated_mesh=ctx.use_triangles,
-                              check_existing=False,
-                              forward_axis='Y', up_axis='Z')
-        # legacy python exporter
-        # bpy.ops.export_scene.obj(filepath=os.path.join(ctx.directory, 'meshes', obj_name + ".obj"),
-        #                          use_selection=True,
-        #                          use_mesh_modifiers=ctx.use_mesh_modifiers,
-        #                          use_normals=ctx.use_normals,
-        #                          use_uvs=ctx.use_uvs,
-        #                          use_materials=ctx.material_mode != "OFF",
-        #                          use_triangles=ctx.use_triangles,
-        #                          use_edges=False,
-        #                          use_smooth_groups=False,
-        #                          check_existing=False,
-        #                          axis_forward='Y', axis_up='Z')
+        if bpy.app.version >= (3, 3, 0):
+            # new, faster C++ OBJ exporter
+            bpy.ops.wm.obj_export(filepath=os.path.join(ctx.directory, 'meshes', obj_name + ".obj"),
+                                  export_selected_objects=True,
+                                  apply_modifiers=ctx.use_mesh_modifiers,
+                                  export_normals=ctx.use_normals,
+                                  export_uv=ctx.use_uvs,
+                                  export_materials=ctx.material_mode != "OFF",
+                                  export_triangulated_mesh=ctx.use_triangles,
+                                  check_existing=False,
+                                  forward_axis='Y', up_axis='Z')
+        else:
+            # legacy python exporter
+            bpy.ops.export_scene.obj(filepath=os.path.join(ctx.directory, 'meshes', obj_name + ".obj"),
+                                     use_selection=True,
+                                     use_mesh_modifiers=ctx.use_mesh_modifiers,
+                                     use_normals=ctx.use_normals,
+                                     use_uvs=ctx.use_uvs,
+                                     use_materials=ctx.material_mode != "OFF",
+                                     use_triangles=ctx.use_triangles,
+                                     use_edges=False,
+                                     use_smooth_groups=False,
+                                     check_existing=False,
+                                     axis_forward='Y', axis_up='Z')
     return {
         "type": "mesh",
         "name": obj_name,
