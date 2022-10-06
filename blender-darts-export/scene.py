@@ -163,11 +163,14 @@ class SceneWriter:
 
         params = {}
 
+        params["sampler"] = {
+            "samples": self.context.scene.cycles.samples
+        }
+
         if (self.sampler != 'none'):
-            params["sampler"] = {
-                "type": self.sampler,
-                "samples": self.context.scene.cycles.samples
-            }
+            params["sampler"].update({
+                "type": self.sampler
+            })
 
         if (self.integrator != 'none'):
             params["integrator"] = {
@@ -176,6 +179,8 @@ class SceneWriter:
         if self.use_background:
             params["background"] = materials.convert_background(self,
                                                                 self.context.scene.world)
+        else:
+            params["background"] = 5
 
         params["accelerator"] = {"type": "bbh"}
 
@@ -215,9 +220,10 @@ class SceneWriter:
         data_all["surfaces"] = geometry.export_meshes(self, meshes)
 
         # export lights
-        b_lights = [obj for obj in objects if obj.type in {'LIGHT'}]
-        data_all["surfaces"].extend(
-            lights.export_light(self, b_lights))
+        if self.use_lights:
+            b_lights = [obj for obj in objects if obj.type in {'LIGHT'}]
+            data_all["surfaces"].extend(
+                lights.export_light(self, b_lights))
 
         # write the json file
         with open(self.filepath, "w") as dump_file:

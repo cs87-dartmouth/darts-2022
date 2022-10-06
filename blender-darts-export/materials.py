@@ -217,14 +217,26 @@ def convert_glossy_material(ctx, current_node):
     params = {}
 
     if ctx.glossy_mode == 'rough conductor':
-        roughness = convert_float_texture_node(ctx,
-                                               current_node.inputs['Roughness'])
         if current_node.distribution != 'SHARP':
             params.update({
                 'type': ctx.glossy_mode,
-                'roughness': roughness,
                 'distribution': RoughnessMode[current_node.distribution],
             })
+
+            params.update({
+                'roughness': convert_float_texture_node(ctx,
+                                                        current_node.inputs['Roughness']),
+            })
+            if 'Anisotropy' in current_node.inputs:
+                params.update({
+                    'anisotropy': convert_float_texture_node(ctx,
+                                                             current_node.inputs['Anisotropy']),
+                })
+            if 'Rotation' in current_node.inputs:
+                params.update({
+                    'rotation': convert_float_texture_node(ctx, current_node.inputs['Rotation']),
+                })
+
         else:
             params.update({
                 'type': 'conductor'
@@ -233,10 +245,11 @@ def convert_glossy_material(ctx, current_node):
         params.update({
             'color': convert_color_texture_node(ctx, current_node.inputs['Color']),
         })
+
     elif ctx.glossy_mode == 'blinn-phong' or ctx.glossy_mode == 'phong':
         if current_node.inputs['Roughness'].is_linked:
             raise NotImplementedError(
-                f"Phong and Blinn-Phong roughness parameter doesn't support textures in Darts")
+                "Phong and Blinn-Phong roughness parameter doesn't support textures in Darts")
         else:
             roughness = roughness_to_blinn_exponent(
                 pow(current_node.inputs['Roughness'].default_value, 2))
@@ -391,6 +404,7 @@ def cycles_material_to_dict(ctx, node, name=None):
     cycles_converters = {
         "ShaderNodeBsdfDiffuse": convert_diffuse_material,
         'ShaderNodeBsdfGlossy': convert_glossy_material,
+        'ShaderNodeBsdfAnisotropic': convert_glossy_material,
         'ShaderNodeBsdfGlass': convert_glass_material,
         'ShaderNodeMixShader': convert_mix_material,
         'ShaderNodeEmission': convert_emitter_material,
@@ -429,11 +443,6 @@ def get_dummy_material(ctx, name):
 def convert_material(ctx, b_mat):
     ''' Converting one material from Blender / Cycles to Darts'''
 
-    name = b_mat.name_full
-
-    if b_mat.name_full in ctx.exported_mats.keys():
-        return None
-
     if b_mat.use_nodes:
         try:
             output_node_id = 'Material Output'
@@ -443,28 +452,25 @@ def convert_material(ctx, b_mat):
                 mat_params = cycles_material_to_dict(ctx,
                                                      surface_node, b_mat.name_full)
                 if 'Displacement' in output_node.inputs and output_node.inputs['Displacement'].is_linked:
-                    raise NotImplementedError(
-                        "Displacement maps are not supported. Consider converting them to bump maps first")
+                    ctx.report(
+                        {'WARNING'}, "Displacement maps are not supported. Consider converting them to bump maps first")
             else:
-                ctx.report(
-                    {'WARNING'}, f"Export of material '{b_mat.name}' failed: Cannot find material output node. Exporting a dummy material instead.")
-                mat_params = get_dummy_material(ctx, b_mat.name_full)
+                raise NotImplementedError("Cannot find material output node")
         except NotImplementedError as e:
             ctx.report(
-                {'WARNING'}, f"Export of material '{b_mat.name}' failed: {e.args[0]}. Exporting a dummy material instead.")
+                {'WARNING'}, f"Export of material '{b_mat.name_full}' failed: {e.args[0]}. Exporting a dummy material instead.")
             mat_params = get_dummy_material(ctx, b_mat.name_full)
     else:
         mat_params = get_dummy_material(ctx, b_mat.name_full)
         mat_params.update({'albedo': ctx.color(b_mat.diffuse_color)})
 
-    ctx.exported_mats[mat_params['name']] = mat_params
     return mat_params
 
 
 def export_materials(ctx, meshes):
     """Write out the materials to Darts format"""
 
-    ctx.report({'INFO'}, f"Writing default lambertian material")
+    # ctx.report({'INFO'}, f"Writing default lambertian material")
     mat_json = [
         {
             "type": "lambertian",
@@ -479,7 +485,7 @@ def export_materials(ctx, meshes):
             if mat.name_full == "Dots Stroke" or mat.users == 0:
                 continue
 
-            ctx.report({'INFO'}, f"Writing material: {mat.name_full}")
+            # ctx.report({'INFO'}, f"Writing material: {mat.name_full}")
             name = mat.name_full
             params = get_dummy_material(
                 ctx, mat.name_full)
@@ -492,13 +498,13 @@ def export_materials(ctx, meshes):
                 if mat.name_full == "Dots Stroke" or mat.users == 0:
                     continue
 
-                ctx.report(
-                    {'INFO'}, f"Writing material: {mat.name_full}")
-                mat_params = convert_material(
-                    ctx, mat)
-                if mat_params is None:
+                # skip if we've already exported this material
+                if mat.name_full in ctx.exported_mats.keys():
                     continue
-                # ctx.report({'INFO'}, json.dumps(mat_params, indent=4))
+
+                mat_params = convert_material(ctx, mat)
+                ctx.exported_mats[mat.name_full] = mat_params
+
                 mat_json.append(mat_params)
 
     return mat_json
