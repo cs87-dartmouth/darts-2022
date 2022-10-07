@@ -83,16 +83,19 @@ Mesh::Mesh(const json &j)
 
     cb.index_cb = [](void *user_data, tinyobj::index_t *indices, int num_indices)
     {
-        // NOTE: the value of each index is raw value. For example, the application must manually adjust the index with
-        // offset (e.g. v_indices.size()) when the value is negative (which means relative index). Also, the first index
-        // starts with 1, not 0. See fixIndex() function in tiny_obj_loader.h for details. Also, 0 is set for the index
-        // value which does not exist in .obj
+        // NOTE: the value of each index is the raw value. For example, the application must manually adjust the index
+        // with offset (e.g. v_indices.size()) when the value is negative (which means relative index). Also, the first
+        // index starts with 1, not 0. See fixIndex() function in tiny_obj_loader.h for details. Also, 0 is set for the
+        // index value which does not exist in the .obj file
         UserData *data = reinterpret_cast<UserData *>(user_data);
         Mesh     *mesh = data->mesh;
 
-        // just create a naive triangle fan from the first vertex
+        if (num_indices < 3)
+            throw DartsException("Polygons must have at least 3 indices");
+
         tinyobj::index_t idx0 = indices[0], idx1 = indices[1], idx2;
 
+        // compute the indices for the first two vertices outside the loop
         tinyobj::fixIndex(idx0.vertex_index, int(mesh->vs.size()), &idx0.vertex_index);
         tinyobj::fixIndex(idx0.normal_index, int(mesh->ns.size()), &idx0.normal_index);
         tinyobj::fixIndex(idx0.texcoord_index, int(mesh->uvs.size()), &idx0.texcoord_index);
@@ -100,17 +103,39 @@ Mesh::Mesh(const json &j)
         tinyobj::fixIndex(idx1.vertex_index, int(mesh->vs.size()), &idx1.vertex_index);
         tinyobj::fixIndex(idx1.normal_index, int(mesh->ns.size()), &idx1.normal_index);
         tinyobj::fixIndex(idx1.texcoord_index, int(mesh->uvs.size()), &idx1.texcoord_index);
+
+        // just create a naive triangle fan from the first vertex
+        // each iteration just computes the indices for the one additional vertex
         for (int i = 2; i < num_indices; i++)
         {
-            idx2 = indices[i];
-            tinyobj::fixIndex(idx2.vertex_index, int(mesh->vs.size()), &idx2.vertex_index);
-            tinyobj::fixIndex(idx2.normal_index, int(mesh->ns.size()), &idx2.normal_index);
-            tinyobj::fixIndex(idx2.texcoord_index, int(mesh->uvs.size()), &idx2.texcoord_index);
+            if (!mesh->vs.size() || indices[0].vertex_index == 0 || indices[i - 1].vertex_index == 0 ||
+                indices[i].vertex_index == 0)
+                throw DartsException("Missing vertex index for triangle");
 
+            idx2 = indices[i];
+
+            // add the vertex and material indices
+            tinyobj::fixIndex(idx2.vertex_index, int(mesh->vs.size()), &idx2.vertex_index);
             mesh->Fv.push_back({idx0.vertex_index, idx1.vertex_index, idx2.vertex_index});
-            mesh->Fn.push_back({idx0.normal_index, idx1.normal_index, idx2.normal_index});
-            mesh->Ft.push_back({idx0.texcoord_index, idx1.texcoord_index, idx2.texcoord_index});
             mesh->Fm.push_back(data->current_material_idx);
+
+            // now optionally add the normal and texture indices
+
+            // if we have normals and three valid normal indices
+            if (mesh->ns.size() && indices[0].normal_index != 0 && indices[i - 1].normal_index != 0 &&
+                indices[i].normal_index != 0)
+            {
+                tinyobj::fixIndex(idx2.normal_index, int(mesh->ns.size()), &idx2.normal_index);
+                mesh->Fn.push_back({idx0.normal_index, idx1.normal_index, idx2.normal_index});
+            }
+
+            // if we have texture coordinates and three valid texture indices
+            if (mesh->uvs.size() && indices[0].texcoord_index != 0 && indices[i - 1].texcoord_index != 0 &&
+                indices[i].texcoord_index != 0)
+            {
+                tinyobj::fixIndex(idx2.texcoord_index, int(mesh->uvs.size()), &idx2.texcoord_index);
+                mesh->Ft.push_back({idx0.texcoord_index, idx1.texcoord_index, idx2.texcoord_index});
+            }
 
             idx1 = idx2;
         }

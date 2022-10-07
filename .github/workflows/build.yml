@@ -94,13 +94,13 @@ jobs:
         shell: bash
         working-directory: ${{github.workspace}}
         if: runner.os != 'Windows'
-        run: cmake --build ${{github.workspace}}/build/${{ matrix.config.buildtype }} --parallel --config ${{ matrix.config.buildtype }}
+        run: cmake --build ${{github.workspace}}/build/${{ matrix.config.buildtype }} --parallel 4 --config ${{ matrix.config.buildtype }}
         # run: cmake --build ${{github.workspace}}/build --config ${{ matrix.config.buildtype }}
 
       - name: Build (Windows)
         working-directory: ${{github.workspace}}
         if: runner.os == 'Windows'
-        run: cmake --build ${{github.workspace}}/build/ --parallel --config ${{ matrix.config.buildtype }}
+        run: cmake --build ${{github.workspace}}/build/ --parallel 4 --config ${{ matrix.config.buildtype }}
         # run: cmake --build ${{github.workspace}}/build --config ${{ matrix.config.buildtype }}
 
       - name: Testing that code runs
