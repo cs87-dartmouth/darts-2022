@@ -2,7 +2,7 @@
     "type": "tests",
     "tests": [
         {
-            "type": "sample_surface",
+            "type": "sample surface",
             "name": "triangle",
             "surface": {
                 "type": "triangle",
@@ -23,7 +23,7 @@
                 }
             }
         }, {
-            "type": "sample_surface",
+            "type": "sample surface",
             "name": "quad",
             "surface": {
                 "type": "quad",
@@ -43,7 +43,7 @@
                 }
             }
         }, {
-            "type": "sample_surface",
+            "type": "sample surface",
             "name": "sphere",
             "surface": {
                 "type": "sphere",
@@ -57,7 +57,7 @@
                 }
             }
         }, {
-            "type": "sample_surface",
+            "type": "sample surface",
             "name": "group",
             "surfaces": {
                 "type": "group",
