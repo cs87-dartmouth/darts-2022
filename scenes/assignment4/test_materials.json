@@ -2,7 +2,7 @@
     "type": "tests",
     "tests": [
         {
-            "type": "sample_material",
+            "type": "sample material",
             "material": {
                 "type": "lambertian",
                 "albedo": 1.0
@@ -13,7 +13,7 @@
             "name": "lambertian"
         },
         {
-            "type": "sample_material",
+            "type": "sample material",
             "material": {
                 "type": "lambertian",
                 "albedo": 1.0
@@ -24,7 +24,7 @@
             "name": "lambertian-rotated"
         },
         {
-            "type": "sample_material",
+            "type": "sample material",
             "material": {
                 "type": "phong",
                 "albedo": 1.0,
@@ -36,7 +36,7 @@
             "name": "phong"
         },
         {
-            "type": "sample_material",
+            "type": "sample material",
             "material": {
                 "type": "phong",
                 "albedo": 1.0,
@@ -47,7 +47,7 @@
             ],
             "name": "phong-rotated"
         }, {
-            "type": "sample_material",
+            "type": "sample material",
             "material": {
                 "type": "blinn-phong",
                 "albedo": 1.0,
@@ -58,7 +58,7 @@
             ],
             "name": "blinn-phong"
         }, {
-            "type": "sample_material",
+            "type": "sample material",
             "material": {
                 "type": "blinn-phong",
                 "albedo": 1.0,
@@ -67,7 +67,7 @@
             "normal": [
                 0.25, 0.5, 1.0
             ],
-            "name": "blinn_phong-rotated"
+            "name": "blinn-phong-rotated"
         }
     ]
 }
