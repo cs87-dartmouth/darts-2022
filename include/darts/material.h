@@ -13,6 +13,14 @@
     @{
 */
 
+/// Convenience data structure used to pass multiple parameters to the evaluation and sampling routines in #Material
+struct ScatterRecord
+{
+    Color3f attenuation;         ///< Attenuation to apply to the traced ray
+    Vec3f   wo;                  ///< The sampled outgoing direction
+    bool    is_specular = false; ///< Flag indicating whether the ray has a degenerate PDF
+};
+
 
 /// A base class used to represent surface material properties.
 class Material
@@ -55,6 +63,60 @@ public:
     }
 
 
+    /**
+       Sample a scattered direction at the surface hitpoint \p hit.
+
+       If it is not possible to evaluate the pdf of the material (e.g.\ it is
+       specular or unknown), then set \c srec.is_specular to true, and populate
+       \c srec.wo and \c srec.attenuation just like we did previously in the
+       #scatter() function. This allows you to fall back to the way we did
+       things with the #scatter() function, i.e.\ bypassing #pdf()
+       evaluations needed for explicit Monte Carlo integration in your
+       #Integrator, but this also precludes the use of MIS or mixture sampling
+       since the pdf is unknown.
+
+       \param  [in] wi      The incoming ray direction (points at surface)
+       \param  [in] hit     The incoming ray's intersection with the surface
+       \param  [out] srec   Populate \p srec.wo, \p srec.is_specular, and \p srec.attenuation
+       \param  [in] rv      A 2D random variables in \f$[0,1)^2\f$ to use when generating the sample
+       \param  [in] rv1     A 1D random variable in \f$[0,1)\f$ to use when generating the sample
+       \return bool         True if the surface scatters light
+    */
+    virtual bool sample(const Vec3f &wi, const HitInfo &hit, ScatterRecord &srec, const Vec2f &rv, float rv1) const
+    {
+        return false;
+    }
+
+    /**
+       Evaluate the material response for the given pair of directions.
+
+       For non-specular materials, this should be the BSDF multiplied by the
+       cosine foreshortening term.
+
+       Specular contributions should be excluded.
+
+       \param  [in] wi          The incoming ray direction
+       \param  [in] scattered   The outgoing ray direction
+       \param  [in] hit         The shading hit point
+       \return Color3f          The evaluated color
+    */
+    virtual Color3f eval(const Vec3f &wi, const Vec3f &scattered, const HitInfo &hit) const
+    {
+        return Color3f(0.0f);
+    }
+
+    /**
+       Compute the probability density that #sample() will generate \p scattered (given \p wi).
+
+       \param  [in] wi          The incoming ray direction
+       \param  [in] scattered   The outgoing ray direction
+       \param  [in] hit         The shading hit point
+       \return float            A probability density value in solid angle measure around \c hit.p.
+    */
+    virtual float pdf(const Vec3f &wi, const Vec3f &scattered, const HitInfo &hit) const
+    {
+        return 0.0f;
+    }
 };
 
 /**

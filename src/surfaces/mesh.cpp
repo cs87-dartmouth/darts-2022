@@ -59,8 +59,10 @@ Mesh::Mesh(const json &j)
     {
         UserData *data = reinterpret_cast<UserData *>(user_data);
         Mesh     *mesh = data->mesh;
-        mesh->vs.push_back(mesh->xform.point(Vec3f(x, y, z)));
-        mesh->bbox.enclose(mesh->vs.back());
+        Vec3f     v{x, y, z};
+        mesh->bbox_o.enclose(v);
+        mesh->vs.push_back(mesh->xform.point(v));
+        mesh->bbox_w.enclose(mesh->vs.back());
     };
 
     cb.normal_cb = [](void *user_data, float x, float y, float z)
@@ -201,8 +203,8 @@ Mesh::Mesh(const json &j)
 
 )",
         vs.size(), ns.size(), uvs.size(), Fv.size(), Fn.size(), Ft.size(), materials.size(),
-        indent(fmt::format("{}", xform.m), string("    xform : ").length()), bbox.min, bbox.max,
-        (bbox.min + bbox.max) / 2.f - Vec3f(0, bbox.diagonal()[1] / 2.f, 0));
+        indent(fmt::format("{}", xform.m), string("    xform : ").length()), bbox_w.min, bbox_w.max,
+        (bbox_w.min + bbox_w.max) / 2.f - Vec3f(0, bbox_w.diagonal()[1] / 2.f, 0));
 
     ++num_tri_meshes;
     num_triangles += Fv.size();

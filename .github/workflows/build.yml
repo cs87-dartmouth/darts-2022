@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - "*"
-      # This action only runs on push when C++ files are changed
     paths:
+      # This action only runs on push when C++ files are changed
       - "**.cpp"
       - "**.h"
       - "**.cmake"

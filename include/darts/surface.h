@@ -25,7 +25,7 @@
 struct HitInfo
 {
     float t;  ///< Ray parameter for the hit
-    Vec3f p;  ///< Hit position
+    Vec3f p;  ///< World-space hit position
     Vec3f gn; ///< Geometric normal
     Vec3f sn; ///< Interpolated shading normal
     Vec2f uv; ///< UV texture coordinates

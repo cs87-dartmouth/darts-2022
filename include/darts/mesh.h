@@ -31,7 +31,7 @@ public:
 
     Box3f bounds() const override
     {
-        return bbox;
+        return bbox_w;
     }
 
     bool empty() const
@@ -51,7 +51,8 @@ public:
     vector<uint32_t>                   Fm;        ///< One material index per face (triangle)
     vector<shared_ptr<const Material>> materials; ///< All materials in the mesh
     Transform xform = Transform();                ///< Transformation that the data has already been transformed by
-    Box3f     bbox;                               ///< The bounds, after transformation
+    Box3f     bbox_w;                             ///< The bounds, after transformation (in world space)
+    Box3f     bbox_o;                             ///< The bounds, before transformation (in object space)
 
     virtual void add_to_parent(Surface *parent, shared_ptr<Surface> self, const json &j) override;
 };

@@ -3,7 +3,7 @@ from mathutils import Vector
 from math import degrees, atan, tan
 
 
-def export_camera(ctx, b_scene):
+def export(ctx, b_scene):
 
     # only exporting one camera
     cameras = [cam for cam in ctx.context.scene.objects
@@ -38,7 +38,7 @@ def export_camera(ctx, b_scene):
     # up, lookat, and position
     up = b_camera.matrix_world.to_quaternion() @ Vector((0.0, 1.0, 0.0))
     direction = b_camera.matrix_world.to_quaternion() @ Vector((0.0, 0.0, -1.0))
-    loc = b_camera.location.copy()
+    loc = b_camera.matrix_world.to_translation()
 
     # set the values and return
     params["transform"] = {
@@ -56,7 +56,7 @@ def export_camera(ctx, b_scene):
         if b_camera.data.dof.focus_object is not None:
             # compute distance to object location projected along the camera view direction
             params["fdist"] = abs(b_camera.matrix_world.col[2].to_3d().normalized().dot(
-                b_camera.data.dof.focus_object.location - b_camera.location))
+                b_camera.data.dof.focus_object.matrix_world.to_translation() - loc))
         else:
             params["fdist"] = b_camera.data.dof.focus_distance
 

@@ -34,7 +34,7 @@
                 "base": [
                     0.45, 0.4, 0.29
                 ],
-                "mapping3d": {
+                "mapping": {
                     "type": "transform",
                     "transform": [
                         {
@@ -68,7 +68,7 @@
                     0.325, 0.31, 0.25
                 ],
                 "scale": 1.75,
-                "mapping3d": {
+                "mapping": {
                     "type": "transform",
                     "transform": [
                         {

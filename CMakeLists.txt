@@ -20,6 +20,10 @@ list(
   APPEND
   darts_lib_SOURCES
   # cmake-format: off
+  # Additional files for PA4 below
+  src/samplers/independent.cpp
+  include/darts/sampler.h
+  src/tests/material_sample_test.cpp
   # Additional files for PA3 below
   # Additional files for PA2 below
   include/darts/test.h

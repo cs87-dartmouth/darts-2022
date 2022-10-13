@@ -1,13 +1,20 @@
 import os
+import time
 import bpy
 from mathutils import Matrix
 from mathutils import Vector
+from mathutils import Euler
+from mathutils import Quaternion
+from math import degrees
 import json
 
 from . import materials
 from . import lights
 from . import geometry
 from . import camera
+
+SUPPORTED_TYPES = {"MESH", "CURVE", "FONT", "META",
+                   "EMPTY", "SURFACE"}  # Formats we can save as .obj
 
 
 class SceneWriter:
@@ -21,6 +28,7 @@ class SceneWriter:
                  filepath,
                  write_obj_files,
                  write_texture_files,
+                 verbose,
                  use_selection,
                  use_visibility,
                  integrator,
@@ -41,6 +49,7 @@ class SceneWriter:
 
         self.write_obj_files = write_obj_files
 
+        self.verbose = verbose
         self.use_selection = use_selection
         self.use_visibility = use_visibility
 
@@ -63,7 +72,11 @@ class SceneWriter:
 
         self.filepath = filepath
         self.directory = os.path.dirname(filepath)
-        self.exported_mats = {}
+        self.already_exported = {}
+
+    def info(self, message):
+        if self.verbose:
+            self.report({'INFO'}, message)
 
     def color(self, value):
         '''
@@ -99,64 +112,87 @@ class SceneWriter:
 
         return col
 
-    def export_texture(self, image):
-        """
-        Return the path to a texture.
-        Ensure the image is on disk and of a correct type
-
-        image : The Blender Image object
-        """
-
-        texture_exts = {
-            'BMP': '.bmp',
-            'HDR': '.hdr',
-            'JPEG': '.jpg',
-            'JPEG2000': '.jpg',
-            'PNG': '.png',
-            'OPEN_EXR': '.exr',
-            'OPEN_EXR_MULTILAYER': '.exr',
-            'TARGA': '.tga',
-            'TARGA_RAW': '.tga',
-        }
-
-        convert_format = {
-            'CINEON': 'EXR',
-            'DPX': 'EXR',
-            'TIFF': 'PNG',
-            'IRIS': 'PNG'
-        }
-
-        textures_folder = os.path.join(self.directory, "textures")
-        if image.file_format in convert_format:
-            self.report(
-                {'WARNING'}, f"Image format of '{image.name}' is not supported. Converting it to {convert_format[image.file_format]}.")
-            image.file_format = convert_format[image.file_format]
-        original_name = os.path.basename(image.filepath)
-        # Try to remove extensions from names of packed files to avoid stuff like 'Image.png.001.png'
-        if original_name != '' and image.name.startswith(original_name):
-            base_name, _ = os.path.splitext(original_name)
-            name = image.name.replace(
-                original_name, base_name, 1)  # Remove the extension
-            name += texture_exts[image.file_format]
-        else:
-            name = f"{image.name}{texture_exts[image.file_format]}"
-        if self.write_texture_files:
-            target_path = os.path.join(textures_folder, name)
-            if not os.path.isdir(textures_folder):
-                os.makedirs(textures_folder)
-            old_filepath = image.filepath
-            image.filepath_raw = target_path
-            image.save()
-            image.filepath_raw = old_filepath
-        return f"textures/{name}"
-
     def transform_matrix(self, matrix):
         if len(matrix) == 4:
             mat = matrix
         else:  # 3x3
             mat = matrix.to_4x4()
-        self.report({'INFO'}, "Writing matrix")
-        return {'matrix': list(i for j in mat for i in j)}
+
+        loc, rot, sca = mat.decompose()
+        eul = rot.to_euler()
+        self.info(
+            f"Writing matrix: {mat}, as\n\t{loc}\n\t{tuple(degrees(a) for a in eul)}\n\t{sca}")
+
+        params = []
+        if eul[:] != (0, 0, 0):
+            params.extend([{'rotate': (degrees(eul.x), 1, 0, 0)},
+                           {'rotate': (degrees(eul.y), 0, 1, 0)},
+                           {'rotate': (degrees(eul.z), 0, 0, 1)}])
+        if sca[:] != (1, 1, 1):
+            params.append({'scale': sca[:]})
+        if loc[:] != (0, 0, 0):
+            params.append({'translate': loc[:]})
+        return params
+
+        # return {'matrix': list(i for j in mat for i in j)}
+
+    def export_vector_node(self, socket):
+
+        if not socket.is_linked:
+            return None
+
+        def export_coord_node(self, socket):
+            from_node = socket.from_node
+            if from_node.bl_idname != 'ShaderNodeTexCoord':
+                raise NotImplementedError(
+                    f"Unsupported node type: {from_node.bl_idname}. Expecting a 'ShaderNodeTexCoord'")
+            if from_node.object is not None:
+                self.report(
+                    {'WARNING'}, "Darts does not currently support texture coordinates from other objects. Ignoring.")
+
+            self.info(
+                f"Writing '{socket.from_socket.name.lower()}' coordinate node")
+            return {"coordinate": socket.from_socket.name.lower()}
+
+        def export_mapping_node(self, socket):
+            from_node = socket.from_node
+
+            params = {'vector type': from_node.vector_type.lower()}
+            self.info(f"Writing '{params['vector type']}' mapping node.")
+
+            if from_node.inputs['Location'].is_linked or from_node.inputs['Rotation'].is_linked or from_node.inputs['Scale'].is_linked:
+                raise NotImplementedError(
+                    "Location, Rotation, and Scale inputs shouldn't be linked")
+
+            L = from_node.inputs['Location'].default_value
+            R = from_node.inputs['Rotation'].default_value
+            S = from_node.inputs['Scale'].default_value
+            M = Matrix.LocRotScale(L, R, S)
+            if M != Matrix.Identity(4):
+                params["transform"] = self.transform_matrix(M.inverted())
+
+            if not from_node.inputs['Vector'].is_linked:
+                raise NotImplementedError(
+                    f"The node {from_node.bl_idname} should be linked with a 'ShaderNodeTexCoord'")
+            params.update(export_coord_node(
+                self, from_node.inputs['Vector'].links[0]))
+
+            return params
+
+        params = {'type': 'transform'}
+
+        from_node = socket.links[0].from_node
+        if from_node.bl_idname == 'ShaderNodeTexCoord':
+            params.update(export_coord_node(
+                self, socket.links[0]))
+        elif from_node.bl_idname == 'ShaderNodeMapping':
+            params.update(export_mapping_node(
+                self, socket.links[0]))
+        else:
+            raise NotImplementedError(
+                f"Unsupported node type: {from_node.bl_idname}. Expecting either a 'ShaderNodeTexCoord' or a 'ShaderNodeMapping'")
+
+        return params
 
     def make_misc(self):
         """Adds default values to make the scene complete"""
@@ -189,41 +225,40 @@ class SceneWriter:
     def write(self):
         """Main method to write the blender scene into Darts format"""
 
+        start = time.perf_counter()
+
         # Switch to object mode before exporting stuff, so everything is defined properly
         if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT')
 
         data_all = {}
 
-        data_all["camera"] = camera.export_camera(self, self.context.scene)
+        data_all["camera"] = camera.export(self, self.context.scene)
 
         # adding defaults
         data_all.update(self.make_misc())
 
         # start with just the objects visible to the renderer
-        objects = [
-            obj for obj in self.context.scene.objects if not obj.hide_render]
+        objects = [o for o in self.context.scene.objects if not o.hide_render]
 
         # figure out the list based on the export settings
         if self.use_selection:
-            objects = [obj for obj in objects if obj.select_get()]
+            objects = [o for o in objects if o.select_get()]
         if self.use_visibility:
-            objects = [obj for obj in objects if obj.visible_get()]
+            objects = [o for o in objects if o.visible_get()]
 
-        meshes = [obj for obj in objects
-                  if obj.type in {'MESH', 'FONT', 'SURFACE', 'META'}]
+        b_meshes = [o for o in objects if o.type in SUPPORTED_TYPES]
 
         # export the materials
-        data_all["materials"] = materials.export_materials(self, meshes)
+        data_all["materials"] = materials.export(self, b_meshes)
 
         # export meshes
-        data_all["surfaces"] = geometry.export_meshes(self, meshes)
+        data_all["surfaces"] = geometry.export(self, b_meshes)
 
         # export lights
         if self.use_lights:
-            b_lights = [obj for obj in objects if obj.type in {'LIGHT'}]
-            data_all["surfaces"].extend(
-                lights.export_light(self, b_lights))
+            b_lights = [o for o in objects if o.type in {'LIGHT'}]
+            data_all["surfaces"].extend(lights.export(self, b_lights))
 
         # write the json file
         with open(self.filepath, "w") as dump_file:
@@ -231,5 +266,6 @@ class SceneWriter:
             dump_file.write(exported_json_string)
             dump_file.close
 
+        end = time.perf_counter()
         self.report(
-            {'INFO'}, f"Scene exported successfully to '{self.filepath}'!")
+            {'INFO'}, f"Scene exported successfully to '{self.filepath}' in {end-start} s!")

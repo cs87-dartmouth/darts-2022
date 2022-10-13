@@ -10,8 +10,7 @@ def convert_area_light(ctx, b_light):
     # Compute area
     if b_light.data.shape == 'SQUARE' or b_light.data.shape == 'RECTANGLE':
         params['type'] = 'quad'
-        ctx.report(
-            {'INFO'}, f"Light scale {b_light.scale.x} x {b_light.scale.y}")
+        ctx.info(f"Light scale {b_light.scale.x} x {b_light.scale.y}")
         x = b_light.data.size
         y = (b_light.data.size_y
              if b_light.data.shape == 'RECTANGLE'
@@ -78,7 +77,7 @@ def convert_spot_light(ctx, b_light):
     return params
 
 
-def export_light(ctx, b_lights):
+def export(ctx, b_lights):
 
     light_converters = {
         'AREA': convert_area_light,
@@ -90,13 +89,13 @@ def export_light(ctx, b_lights):
     params = []
     for l in b_lights:
         try:
-            ctx.report({'INFO'}, f"light type {l.data.type}")
+            ctx.info(f"Creating a '{l.data.type}' light.")
             params.append(light_converters[l.data.type](ctx, l))
         except KeyError:
             ctx.report(
-                {'WARNING'}, f"Could not export '{l.name_full}', light type {l.data.type} is not supported.")
+                {'WARNING'}, f"Could not export '{l.name_full}'; light type {l.data.type} is not supported.")
         except NotImplementedError as err:
             ctx.report(
-                {'WARNING'}, f"Error while exporting light: '{l.name_full}': {err.args[0]}.")
+                {'WARNING'}, f"Error while exporting light '{l.name_full}': {err.args[0]}.")
 
     return params

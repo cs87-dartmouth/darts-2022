@@ -33,6 +33,8 @@ template <class T, int M, int N>
 using Mat = la::mat<T, M, N>; ///< Generic \p M x \p N matrix
 
 template <class T>
+using Vec1 = Vec<1, T>;
+template <class T>
 using Vec2 = Vec<2, T>;
 template <class T>
 using Vec3 = Vec<3, T>;
@@ -43,6 +45,12 @@ template <class T>
 using Color3 = Vec<3, T>; ///< RGB color of type T
 template <class T>
 using Color4 = Vec<4, T>; ///< RGBA color of type T
+
+using Vec1f = Vec1<float>;
+using Vec1d = Vec1<double>;
+using Vec1i = Vec1<std::int32_t>;
+using Vec1u = Vec1<std::uint32_t>;
+using Vec1c = Vec1<std::uint8_t>;
 
 using Vec2f = Vec2<float>;
 using Vec2d = Vec2<double>;

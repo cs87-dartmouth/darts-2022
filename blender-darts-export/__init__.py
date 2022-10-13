@@ -19,7 +19,7 @@ from bpy_extras.io_utils import ExportHelper
 bl_info = {
     "name": "Darts",
     "author": "Wojciech Jarosz, Baptiste Nicolet, Shaojie Jiao, Adrien Gruson, Delio Vicini, Tizian Zeltner",
-    "version": (0, 2, 3),
+    "version": (0, 2, 4),
     "blender": (2, 80, 0),
     "location": "File > Export > Darts exporter (.json)",
     "description": "Export Darts scene format (.json)",
@@ -38,6 +38,11 @@ class DartsExporter(bpy.types.Operator, ExportHelper):
     filename_ext = ".json"
     filter_glob: StringProperty(default="*.json", options={'HIDDEN'})
 
+    verbose: BoolProperty(
+        name="Verbose output",
+        description="Print out extra info in Blender's Info Log",
+        default=False,
+    )
     use_selection: BoolProperty(
         name="Selection Only",
         description="Export selected objects only",
@@ -45,7 +50,7 @@ class DartsExporter(bpy.types.Operator, ExportHelper):
     )
     use_visibility: BoolProperty(
         name="Visible Only",
-        description="Export visible objects only",
+        description="We export only objects that are visible for render. If checked, also exclude any objects hidden in the viewport",
         default=True,
     )
     write_obj_files: BoolProperty(
@@ -168,13 +173,11 @@ class DartsExporter(bpy.types.Operator, ExportHelper):
     )
 
     def execute(self, context):
-
         from . import scene
 
         keywords = self.as_keywords(ignore=("check_existing",
                                             "filter_glob"
                                             ))
-
         converter = scene.SceneWriter(context,
                                       self.report,
                                       **keywords)
@@ -206,6 +209,8 @@ class DARTS_PT_export_include(bpy.types.Panel):
 
         sfile = context.space_data
         operator = sfile.active_operator
+
+        layout.prop(operator, 'verbose')
 
         sublayout = layout.column(heading="Limit to")
         sublayout.prop(operator, "use_selection")
