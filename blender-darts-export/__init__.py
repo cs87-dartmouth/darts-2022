@@ -21,7 +21,7 @@ from bpy_extras.io_utils import ExportHelper
 bl_info = {
     "name": "Darts",
     "author": "Wojciech Jarosz, Baptiste Nicolet, Shaojie Jiao, Adrien Gruson, Delio Vicini, Tizian Zeltner",
-    "version": (0, 2, 5),
+    "version": (0, 2, 6),
     "blender": (2, 80, 0),
     "location": "File > Export > Darts exporter (.json)",
     "description": "Export Darts scene format (.json)",
@@ -161,8 +161,8 @@ class DartsExporter(bpy.types.Operator, ExportHelper):
         default=True,
     )
     enable_mapping: BoolProperty(
-        name="Texture coords",
-        description="Convert Blender Texture Coordinate and Mapping nodes to a Darts 'mapping' field",
+        name="Coord/Mapping",
+        description="Convert Blender Texture Coordinate and Mapping nodes to a Dart Texture's 'mapping' field",
         default=True,
     )
     enable_fresnel: BoolProperty(
@@ -198,6 +198,11 @@ class DartsExporter(bpy.types.Operator, ExportHelper):
     enable_blackbody: BoolProperty(
         name="Blackbody",
         description="Convert Blender Blackbody shader to a Darts 'blackbody' texture",
+        default=True,
+    )
+    enable_coord: BoolProperty(
+        name="Coord texture",
+        description="Convert Blender Texture Coordinate/Mapping nodes into Darts 'coord' textures",
         default=True,
     )
 
@@ -362,6 +367,7 @@ class DARTS_PT_export_textures(bpy.types.Panel):
         sublayout.prop(operator, "enable_checker")
         sublayout.prop(operator, 'enable_brick')
         sublayout.prop(operator, 'enable_blackbody')
+        sublayout.prop(operator, 'enable_coord')
 
 
 def menu_func_export(self, context):

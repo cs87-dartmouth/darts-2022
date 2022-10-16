@@ -289,6 +289,20 @@ def convert_blackbody_node(ctx, out_socket):
     }
 
 
+def convert_coord_texture_node(ctx, out_socket):
+    if not ctx.enable_coord:
+        return dummy_color(ctx)
+
+    node = out_socket.node
+    params = {
+        'type': 'coord',
+    }
+
+    add_vector_node_field(ctx, params, out_socket)
+
+    return params
+
+
 def convert_texture_node(ctx, socket):
     texture_converters = {
         "ShaderNodeTexImage": convert_image_texture_node,
@@ -300,6 +314,8 @@ def convert_texture_node(ctx, socket):
         'ShaderNodeTexChecker': convert_checker_texture_node,
         'ShaderNodeTexBrick': convert_brick_texture_node,
         'ShaderNodeBlackbody': convert_blackbody_node,
+        'ShaderNodeTexCoord': convert_coord_texture_node,
+        'ShaderNodeMapping': convert_coord_texture_node,
     }
 
     params = None

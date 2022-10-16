@@ -49,7 +49,8 @@ class SceneWriter:
                  enable_noise,
                  enable_checker,
                  enable_brick,
-                 enable_blackbody):
+                 enable_blackbody,
+                 enable_coord):
         self.context = context
         self.report = report
 
@@ -81,6 +82,7 @@ class SceneWriter:
         self.enable_checker = enable_checker
         self.enable_brick = enable_brick
         self.enable_blackbody = enable_blackbody
+        self.enable_coord = enable_coord
 
         self.filepath = filepath
         self.directory = os.path.dirname(filepath)
