@@ -41,6 +41,7 @@
 #include "stb_image_write.h"
 
 #define TINYEXR_IMPLEMENTATION
+#define TINYEXR_USE_THREAD 1
 #include "tinyexr.h"
 
 // local functions
@@ -75,38 +76,40 @@ bool is_stb_image(const string &filename)
     return false;
 }
 
-} // namespace
-
-bool Image3f::load(const string &filename, bool raw)
+template <int N>
+bool load(const string &filename, bool raw, Image<Color<N, float>> &image)
 {
     string errors_stb, errors_exr;
 
     Progress progress(fmt::format("Loading: {}", filename));
 
     // first try using stb_image
-    // if (is_stb_image(filename))
+    if (is_stb_image(filename))
     {
         // stbi doesn't do proper srgb, but uses gamma=2.2 instead, so override it.
         // we'll do our own srgb correction
         stbi_ldr_to_hdr_scale(1.0f);
         stbi_ldr_to_hdr_gamma(1.0f);
 
-        int    n, w, h;
-        float *float_data = stbi_loadf(filename.c_str(), &w, &h, &n, 3);
+        int    w, h, n;
+        float *float_data = stbi_loadf(filename.c_str(), &w, &h, &n, N);
         bool   is_HDR     = stbi_is_hdr(filename.c_str());
         if (float_data)
         {
-            resize(w, h);
+            image.resize(w, h);
             // copy pixels over to the Image
             for (auto y : range(h))
             {
                 for (auto x : range(w))
                 {
-                    auto c = Color3f(float_data[3 * (x + y * w) + 0], float_data[3 * (x + y * w) + 1],
-                                     float_data[3 * (x + y * w) + 2]);
+                    image(x, y) = Color<N, float>{float_data + N * (x + y * w)};
                     if (!is_HDR && !raw)
-                        c = to_linear_RGB(c);
-                    (*this)(x, y) = c;
+                    {
+                        auto rgb       = to_linear_RGB(*reinterpret_cast<Color3f *>(&image(x, y)));
+                        image(x, y)[0] = rgb[0];
+                        image(x, y)[1] = rgb[1];
+                        image(x, y)[2] = rgb[2];
+                    }
                 }
             }
             stbi_image_free(float_data);
@@ -127,15 +130,12 @@ bool Image3f::load(const string &filename, bool raw)
 
         if (ret == TINYEXR_SUCCESS)
         {
-            resize(w, h);
+            image.resize(w, h);
 
             // copy pixels over to the Image
             for (auto y : range(h))
-            {
                 for (auto x : range(w))
-                    (*this)(x, y) = Color3f(float_data[4 * (x + y * w) + 0], float_data[4 * (x + y * w) + 1],
-                                            float_data[4 * (x + y * w) + 2]);
-            }
+                    image(x, y) = Color<N, float>{float_data + 4 * (x + y * w)};
             free(float_data); // release memory of image data
             return true;
         }
@@ -151,7 +151,8 @@ bool Image3f::load(const string &filename, bool raw)
     return false;
 }
 
-bool Image3f::save(const string &filename, float gain)
+template <int N>
+bool save(const string &filename, float gain, const Image<Color<N, float>> &buffer)
 {
     string extension = get_file_extension(filename);
 
@@ -159,7 +160,8 @@ bool Image3f::save(const string &filename, float gain)
               [](char c) { return static_cast<char>(std::tolower(c)); });
 
     if (extension == "hdr")
-        return stbi_write_hdr(filename.c_str(), width(), height(), 3, (const float *)&m_data[0]) != 0;
+        return stbi_write_hdr(filename.c_str(), buffer.width(), buffer.height(), N,
+                              reinterpret_cast<const float *>(&buffer(0))) != 0;
     else if (extension == "exr")
     {
         EXRHeader header;
@@ -168,35 +170,33 @@ bool Image3f::save(const string &filename, float gain)
         EXRImage image;
         InitEXRImage(&image);
 
-        image.num_channels = 3;
+        image.num_channels = N;
 
-        std::vector<float> images[3];
-        images[0].resize(size());
-        images[1].resize(size());
-        images[2].resize(size());
-
-        for (auto i : range(size()))
+        std::vector<float> images[N];
+        for (auto i : range(N))
         {
-            images[0][i] = (*this)(i)[0];
-            images[1][i] = (*this)(i)[1];
-            images[2][i] = (*this)(i)[2];
+            images[i].resize(buffer.size());
+            for (auto j : range(images[i].size()))
+                images[i][j] = buffer(j)[i];
         }
 
-        float *image_ptr[3];
-        image_ptr[0] = &(images[2].at(0)); // B
-        image_ptr[1] = &(images[1].at(0)); // G
-        image_ptr[2] = &(images[0].at(0)); // R
+        float *image_ptr[N];
+        // first 3 channels are in BGR order, then A
+        for (auto i : range(3))
+            image_ptr[i] = &(images[2 - i].at(0));
+        if constexpr (N == 4)
+            image_ptr[3] = &(images[3].at(0)); // A
 
-        image.images = (unsigned char **)image_ptr;
-        image.width  = width();
-        image.height = height();
+        image.images = (uint8_t **)image_ptr;
+        image.width  = buffer.width();
+        image.height = buffer.height();
 
-        header.num_channels = 3;
+        header.num_channels = N;
         header.channels     = (EXRChannelInfo *)malloc(sizeof(EXRChannelInfo) * header.num_channels);
         // Must be BGR(A) order, since most of EXR viewers expect this channel order.
-        strncpy(header.channels[0].name, "B", 255);
-        strncpy(header.channels[1].name, "G", 255);
-        strncpy(header.channels[2].name, "R", 255);
+        const char *chan_names[4] = {"B", "G", "R", "A"};
+        for (auto i : range(N))
+            strncpy(header.channels[i].name, chan_names[i], 255);
 
         header.compression_type = TINYEXR_COMPRESSIONTYPE_PIZ;
 
@@ -215,7 +215,7 @@ bool Image3f::save(const string &filename, float gain)
         strncpy(header.custom_attributes[0].name, "comments", 255);
         strncpy(header.custom_attributes[0].type, "string", 255);
         char comment[]                    = "Generated with darts";
-        header.custom_attributes[0].value = reinterpret_cast<unsigned char *>(&comment);
+        header.custom_attributes[0].value = reinterpret_cast<uint8_t *>(&comment);
         header.custom_attributes[0].size  = strlen(comment);
 
         const char *err;
@@ -235,32 +235,64 @@ bool Image3f::save(const string &filename, float gain)
     else
     {
         // convert floating-point image to 8-bit per channel
-        vector<unsigned char> data(width() * height() * 3, 0);
-        for (auto y : range(height()))
-            for (auto x : range(width()))
+        vector<uint8_t> data(buffer.size() * N, 0);
+        for (auto y : range(buffer.height()))
+            for (auto x : range(buffer.width()))
             {
-                Color3f cf = (*this)(x, y) * gain;
+                int pixel_offset = N * (x + y * buffer.width());
+
+                Color3f cf{reinterpret_cast<const float *>(&buffer(x, y))};
+                cf *= gain;
 
                 // check for invalid colors and make them magenta
                 cf = la::all(la::isfinite(cf)) ? cf : Color3f{1.f, 0.f, 1.f};
 
                 Color3c cc{clamp(to_sRGB(cf), 0.f, 1.f) * 255};
 
-                data[3 * x + 3 * y * width() + 0] = cc[0];
-                data[3 * x + 3 * y * width() + 1] = cc[1];
-                data[3 * x + 3 * y * width() + 2] = cc[2];
+                data[pixel_offset + 0] = cc[0];
+                data[pixel_offset + 1] = cc[1];
+                data[pixel_offset + 2] = cc[2];
+
+                if constexpr (N == 4)
+                    data[pixel_offset + 3] = clamp(buffer(x, y)[3], 0.f, 1.f) * 255;
             }
 
         if (extension == "png")
-            return stbi_write_png(filename.c_str(), width(), height(), 3, &data[0],
-                                  sizeof(unsigned char) * width() * 3) != 0;
+            return stbi_write_png(filename.c_str(), buffer.width(), buffer.height(), N, &data[0],
+                                  sizeof(uint8_t) * buffer.width() * N) != 0;
         else if (extension == "jpg" || extension == "jpeg")
-            return stbi_write_jpg(filename.c_str(), width(), height(), 3, &data[0], 100) != 0;
+            return stbi_write_jpg(filename.c_str(), buffer.width(), buffer.height(), N, &data[0], 100) != 0;
         else if (extension == "bmp")
-            return stbi_write_bmp(filename.c_str(), width(), height(), 3, &data[0]) != 0;
+            return stbi_write_bmp(filename.c_str(), buffer.width(), buffer.height(), N, &data[0]) != 0;
         else if (extension == "tga")
-            return stbi_write_tga(filename.c_str(), width(), height(), 3, &data[0]) != 0;
+            return stbi_write_tga(filename.c_str(), buffer.width(), buffer.height(), N, &data[0]) != 0;
         else
             throw DartsException("Could not determine desired file type from extension.");
     }
+}
+
+} // namespace
+
+template <>
+bool Image<Color3f>::load(const string &filename, bool raw)
+{
+    return ::load(filename, raw, *this);
+}
+
+template <>
+bool Image<Color3f>::save(const string &filename, float gain)
+{
+    return ::save(filename, gain, *this);
+}
+
+template <>
+bool Image<Color4f>::load(const string &filename, bool raw)
+{
+    return ::load(filename, raw, *this);
+}
+
+template <>
+bool Image<Color4f>::save(const string &filename, float gain)
+{
+    return ::save(filename, gain, *this);
 }

@@ -9,6 +9,7 @@ from math import degrees
 import json
 
 from . import materials
+from . import textures
 from . import lights
 from . import geometry
 from . import camera
@@ -33,17 +34,22 @@ class SceneWriter:
                  use_visibility,
                  integrator,
                  sampler,
-                 use_background,
                  use_lights,
-                 use_mesh_modifiers,
-                 use_normals,
-                 use_uvs,
                  mesh_mode,
-                 use_triangles,
                  material_mode,
                  glossy_mode,
                  use_normal_maps,
-                 force_two_sided):
+                 use_bump_maps,
+                 force_two_sided,
+                 enable_background,
+                 enable_mapping,
+                 enable_fresnel,
+                 enable_layer_weight,
+                 enable_mix_rgb,
+                 enable_noise,
+                 enable_checker,
+                 enable_brick,
+                 enable_blackbody):
         self.context = context
         self.report = report
 
@@ -55,20 +61,26 @@ class SceneWriter:
 
         self.integrator = integrator
         self.sampler = sampler
-        self.use_background = use_background
         self.use_lights = use_lights
 
-        self.use_mesh_modifiers = use_mesh_modifiers
-        self.use_normals = use_normals
-        self.use_uvs = use_uvs
         self.mesh_mode = mesh_mode
-        self.use_triangles = use_triangles
 
         self.material_mode = material_mode
         self.write_texture_files = write_texture_files
         self.use_normal_maps = use_normal_maps
+        self.use_bump_maps = use_bump_maps
         self.force_two_sided = force_two_sided
         self.glossy_mode = glossy_mode
+
+        self.enable_background = enable_background
+        self.enable_mapping = enable_mapping
+        self.enable_fresnel = enable_fresnel
+        self.enable_layer_weight = enable_layer_weight
+        self.enable_mix_rgb = enable_mix_rgb
+        self.enable_noise = enable_noise
+        self.enable_checker = enable_checker
+        self.enable_brick = enable_brick
+        self.enable_blackbody = enable_blackbody
 
         self.filepath = filepath
         self.directory = os.path.dirname(filepath)
@@ -136,64 +148,6 @@ class SceneWriter:
 
         # return {'matrix': list(i for j in mat for i in j)}
 
-    def export_vector_node(self, socket):
-
-        if not socket.is_linked:
-            return None
-
-        def export_coord_node(self, socket):
-            from_node = socket.from_node
-            if from_node.bl_idname != 'ShaderNodeTexCoord':
-                raise NotImplementedError(
-                    f"Unsupported node type: {from_node.bl_idname}. Expecting a 'ShaderNodeTexCoord'")
-            if from_node.object is not None:
-                self.report(
-                    {'WARNING'}, "Darts does not currently support texture coordinates from other objects. Ignoring.")
-
-            self.info(
-                f"Writing '{socket.from_socket.name.lower()}' coordinate node")
-            return {"coordinate": socket.from_socket.name.lower()}
-
-        def export_mapping_node(self, socket):
-            from_node = socket.from_node
-
-            params = {'vector type': from_node.vector_type.lower()}
-            self.info(f"Writing '{params['vector type']}' mapping node.")
-
-            if from_node.inputs['Location'].is_linked or from_node.inputs['Rotation'].is_linked or from_node.inputs['Scale'].is_linked:
-                raise NotImplementedError(
-                    "Location, Rotation, and Scale inputs shouldn't be linked")
-
-            L = from_node.inputs['Location'].default_value
-            R = from_node.inputs['Rotation'].default_value
-            S = from_node.inputs['Scale'].default_value
-            M = Matrix.LocRotScale(L, R, S)
-            if M != Matrix.Identity(4):
-                params["transform"] = self.transform_matrix(M.inverted())
-
-            if not from_node.inputs['Vector'].is_linked:
-                raise NotImplementedError(
-                    f"The node {from_node.bl_idname} should be linked with a 'ShaderNodeTexCoord'")
-            params.update(export_coord_node(
-                self, from_node.inputs['Vector'].links[0]))
-
-            return params
-
-        params = {'type': 'transform'}
-
-        from_node = socket.links[0].from_node
-        if from_node.bl_idname == 'ShaderNodeTexCoord':
-            params.update(export_coord_node(
-                self, socket.links[0]))
-        elif from_node.bl_idname == 'ShaderNodeMapping':
-            params.update(export_mapping_node(
-                self, socket.links[0]))
-        else:
-            raise NotImplementedError(
-                f"Unsupported node type: {from_node.bl_idname}. Expecting either a 'ShaderNodeTexCoord' or a 'ShaderNodeMapping'")
-
-        return params
-
     def make_misc(self):
         """Adds default values to make the scene complete"""
 
@@ -212,9 +166,9 @@ class SceneWriter:
             params["integrator"] = {
                 "type": self.integrator}
 
-        if self.use_background:
-            params["background"] = materials.convert_background(self,
-                                                                self.context.scene.world)
+        if self.enable_background:
+            params["background"] = textures.convert_background(self,
+                                                               self.context.scene.world)
         else:
             params["background"] = 5
 

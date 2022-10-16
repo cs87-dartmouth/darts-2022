@@ -31,6 +31,8 @@ template <int N, class T>
 using Vec = la::vec<T, N>; ///< Generic \p N dimensional vector
 template <class T, int M, int N>
 using Mat = la::mat<T, M, N>; ///< Generic \p M x \p N matrix
+template <int N, class T>
+using Color = la::vec<T, N>; ///< Generic \p N dimensional color
 
 template <class T>
 using Vec1 = Vec<1, T>;
@@ -42,9 +44,9 @@ template <class T>
 using Vec4 = Vec<4, T>;
 
 template <class T>
-using Color3 = Vec<3, T>; ///< RGB color of type T
+using Color3 = Color<3, T>; ///< RGB color of type T
 template <class T>
-using Color4 = Vec<4, T>; ///< RGBA color of type T
+using Color4 = Color<4, T>; ///< RGBA color of type T
 
 using Vec1f = Vec1<float>;
 using Vec1d = Vec1<double>;
@@ -63,10 +65,10 @@ using Vec3d   = Vec3<double>;
 using Vec3i   = Vec3<std::int32_t>;
 using Vec3u   = Vec3<std::uint32_t>;
 using Vec3c   = Vec3<std::uint8_t>;
-using Color3f = Vec3<float>;
-using Color3d = Vec3<double>;
-using Color3u = Vec3<std::uint32_t>;
-using Color3c = Vec3<std::uint8_t>;
+using Color3f = Color3<float>;
+using Color3d = Color3<double>;
+using Color3u = Color3<std::uint32_t>;
+using Color3c = Color3<std::uint8_t>;
 
 using Vec4f = Vec4<float>;
 using Vec4d = Vec4<double>;
@@ -74,10 +76,10 @@ using Vec4i = Vec4<std::int32_t>;
 using Vec4u = Vec4<std::uint32_t>;
 using Vec4c = Vec4<std::uint8_t>;
 
-using Color4f = Vec4<float>;
-using Color4d = Vec4<double>;
-using Color4u = Vec4<std::uint32_t>;
-using Color4c = Vec4<std::uint8_t>;
+using Color4f = Color4<float>;
+using Color4d = Color4<double>;
+using Color4u = Color4<std::uint32_t>;
+using Color4c = Color4<std::uint8_t>;
 
 template <class T>
 using Mat22 = la::mat<T, 2, 2>;

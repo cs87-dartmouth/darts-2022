@@ -7,7 +7,8 @@
 
 // Forward declarations
 class Camera;
-class Image3f;
+template <typename T>
+class Image;
 class Integrator;
 struct HitInfo;
 struct ScatterRecord;

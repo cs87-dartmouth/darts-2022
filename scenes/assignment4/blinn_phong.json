@@ -21,7 +21,7 @@
         0, 0, 0
     ],
     "integrator": {
-        "type": "path tracer nee",
+        "type": "path tracer mats",
         "max bounces": 64
     },
     "accelerator": {

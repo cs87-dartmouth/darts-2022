@@ -1,279 +1,10 @@
 import numpy as np
-from mathutils import Matrix
-import json
 import bpy
-import os
+
+from . import textures
 
 RoughnessMode = {'GGX': 'ggx', 'BECKMANN': 'beckmann',
                  'ASHIKHMIN_SHIRLEY': 'blinn', 'MULTI_GGX': 'ggx'}
-
-
-def export_texture(ctx, image):
-    """
-    Return the path to a texture.
-    Ensure the image is on disk and of a correct type
-
-    image : The Blender Image object
-    """
-
-    texture_exts = {
-        'BMP': '.bmp',
-        'HDR': '.hdr',
-        'JPEG': '.jpg',
-        'JPEG2000': '.jpg',
-        'PNG': '.png',
-        'OPEN_EXR': '.exr',
-        'OPEN_EXR_MULTILAYER': '.exr',
-        'TARGA': '.tga',
-        'TARGA_RAW': '.tga',
-    }
-
-    convert_format = {
-        'CINEON': 'EXR',
-        'DPX': 'EXR',
-        'TIFF': 'PNG',
-        'IRIS': 'PNG'
-    }
-
-    textures_folder = os.path.join(ctx.directory, "textures")
-    if image.file_format in convert_format:
-        ctx.info(
-            f"Image format of '{image.name}' is not supported. Converting it to {convert_format[image.file_format]}.")
-        image.file_format = convert_format[image.file_format]
-    original_name = os.path.basename(image.filepath)
-    # Try to remove extensions from names of packed files to avoid stuff like 'Image.png.001.png'
-    if original_name != '' and image.name.startswith(original_name):
-        base_name, _ = os.path.splitext(original_name)
-        name = image.name.replace(
-            original_name, base_name, 1)  # Remove the extension
-        name += texture_exts[image.file_format]
-    else:
-        name = f"{image.name}{texture_exts[image.file_format]}"
-    if ctx.write_texture_files:
-        target_path = os.path.join(textures_folder, name)
-        if not os.path.isdir(textures_folder):
-            os.makedirs(textures_folder)
-        old_filepath = image.filepath
-        image.filepath_raw = target_path
-        image.save()
-        image.filepath_raw = old_filepath
-    return f"textures/{name}"
-
-
-def convert_background(ctx, world):
-    """
-    convert environment lighting. Constant emitter and envmaps are supported
-
-    Params
-    ------
-    surface_node: the final node of the shader
-    ignore_background: whether we want to export blender's default background or not
-    """
-
-    try:
-        if world is None:
-            raise NotImplementedError('No Blender world to export')
-
-        if world.use_nodes and world.node_tree is not None:
-
-            output_node_id = 'World Output'
-            if output_node_id not in world.node_tree.nodes:
-                raise NotImplementedError(
-                    'Failed to export world: Cannot find world output node')
-
-            output_node = world.node_tree.nodes[output_node_id]
-            if not output_node.inputs['Surface'].is_linked:
-                return 0
-
-            surface_node = output_node.inputs['Surface'].links[0].from_node
-            if 'Strength' not in surface_node.inputs:
-                raise NotImplementedError(
-                    "Expecting a material with a 'Strength' parameter for a background")
-
-            if surface_node.inputs['Strength'].is_linked:
-                raise NotImplementedError(
-                    "Only default emitter 'Strength' value is supported")
-
-            strength = surface_node.inputs['Strength'].default_value
-            if strength == 0:  # Don't add an emitter if it emits nothing
-                ctx.info('Ignoring envmap with zero strength.')
-                return 0
-
-            if surface_node.bl_idname in ['ShaderNodeBackground', 'ShaderNodeEmission']:
-                socket = surface_node.inputs['Color']
-                if socket.is_linked:
-                    color_node = socket.links[0].from_node
-                    if color_node.bl_idname == 'ShaderNodeTexEnvironment':
-                        params = {
-                            'type': 'envmap',
-                            'filename': export_texture(ctx, color_node.image),
-                            'scale': strength
-                        }
-
-                        mapping = ctx.export_vector_node(
-                            color_node.inputs['Vector'])
-                        if mapping is not None:
-                            params["mapping"] = mapping
-
-                        return params
-                    elif color_node.bl_idname == 'ShaderNodeRGB':
-                        color = color_node.color
-                    else:
-                        raise NotImplementedError(
-                            f"Node type {color_node.bl_idname} is not supported. Consider using an environment texture or RGB node instead")
-                else:
-                    color = socket.default_value
-
-                # Not an envmap
-                radiance = [x * strength for x in color[:3]]
-                if np.sum(radiance) == 0:
-                    ctx.info("Ignoring background emitter with zero emission.")
-                    return 0
-                return ctx.color(radiance)
-            else:
-                raise NotImplementedError(
-                    f"Only Background and Emission nodes are supported as final nodes for background export, got '{surface_node.name}'")
-        else:
-            # Single color field for emission, no nodes
-            return ctx.color(world.color)
-
-    except NotImplementedError as err:
-        ctx.report(
-            {'WARNING'}, f"Error while converting background: {err.args[0]}. Using default.")
-        return 5
-
-
-def export_texture_node(ctx, tex_node):
-    params = {
-        'type': 'image'
-    }
-    # get the relative path to the copied texture from the full path to the original texture
-    params['filename'] = export_texture(ctx, tex_node.image)
-    # TODO: texture transform (mapping node)
-    if tex_node.image.colorspace_settings.name in ['Non-Color', 'Raw', 'Linear']:
-        # non color data, tell Darts not to apply gamma conversion to it
-        params['raw'] = True
-    elif tex_node.image.colorspace_settings.name != 'sRGB':
-        ctx.report(
-            {'WARNING'}, f"Texture '{tex_node.image}' uses {tex_node.image.colorspace_settings.name} colorspace. Darts only supports sRGB textures for color data.")
-
-    mapping = ctx.export_vector_node(tex_node.inputs['Vector'])
-    if mapping is not None:
-        params["mapping"] = mapping
-
-    return params
-
-
-def convert_float_texture_node(ctx, socket):
-    params = None
-
-    if socket.is_linked:
-        node = socket.links[0].from_node
-
-        if node.bl_idname == "ShaderNodeTexImage":
-            params = export_texture_node(ctx, node)
-        elif node.bl_idname == "ShaderNodeFresnel":
-            if node.inputs['IOR'].is_linked:
-                ctx.report(
-                    {'WARNING'}, "Textured IOR values are not supported in Darts. Using the default value instead.")
-
-            params = {
-                'type': 'fresnel',
-                'ior': node.inputs['IOR'].default_value
-            }
-        elif node.bl_idname == "ShaderNodeLayerWeight":
-            if socket.links[0].from_socket.name == "Fresnel":
-                if node.inputs['Blend'].is_linked:
-                    ctx.report(
-                        {'WARNING'}, "Textured Blend values for Fresnel are not currently supported in Darts. Using the default value instead.")
-                params = {
-                    'type': 'fresnel',
-                    'ior': 1.0 / max(1.0 - node.inputs['Blend'].default_value, 1e-5)
-                }
-            elif socket.links[0].from_socket.name == "Facing":
-                params = {
-                    'type': 'facing',
-                    'blend': convert_float_texture_node(ctx,
-                                                        node.inputs['Blend'])
-                }
-            else:
-                raise NotImplementedError(
-                    "Unsupported Layer Weight type, expecting either 'Fresnel' or 'Facing'")
-        elif node.bl_idname == "ShaderNodeMixRGB":
-            params = {
-                'type': 'mix',
-                'blend type': node.blend_type.lower().replace('_', ' '),
-                'clamp': node.use_clamp,
-                'color1': convert_color_texture_node(ctx, node.inputs['Color1']),
-                'color2': convert_color_texture_node(ctx, node.inputs['Color2']),
-            }
-        else:
-            raise NotImplementedError(
-                f"Node type {node.bl_idname} is not supported")
-    else:
-        if socket.name == 'Roughness':  # roughness values in blender are remapped with a square root
-            params = pow(socket.default_value, 2)
-        else:
-            params = socket.default_value
-
-    return params
-
-
-def convert_color_texture_node(ctx, socket):
-    params = None
-
-    if socket.is_linked:
-        node = socket.links[0].from_node
-
-        if node.bl_idname == "ShaderNodeTexImage":
-            params = export_texture_node(ctx, node)
-        elif node.bl_idname == "ShaderNodeNormalMap":
-            if node.space != 'TANGENT':
-                raise NotImplementedError(
-                    f"Darts only supports tangent-space normal maps")
-            params = export_texture_node(ctx,
-                                         node.inputs['Color'].links[0].from_node)
-        elif node.bl_idname == "ShaderNodeBump":
-            params = export_texture_node(ctx,
-                                         node.inputs['Height'].links[0].from_node)
-        elif node.bl_idname == "ShaderNodeDisplacement":
-            if node.space != 'OBJECT':
-                raise NotImplementedError(
-                    "Darts only supports object-space displacement/bump maps")
-            params = export_texture_node(ctx,
-                                         node.inputs['Height'].links[0].from_node)
-        elif node.bl_idname == "ShaderNodeRGB":
-            # input rgb node
-            params = ctx.color(node.color)
-        elif node.bl_idname == "ShaderNodeTexChecker":
-            if node.inputs['Scale'].is_linked:
-                raise NotImplementedError(
-                    "Textured 'Scale' values are not supported")
-            params = {
-                'type': 'checker',
-                'scale': 1.0 / node.inputs['Scale'].default_value,
-                'odd': convert_color_texture_node(ctx, node.inputs['Color1']),
-                'even': convert_color_texture_node(ctx, node.inputs['Color2']),
-            }
-            mapping = ctx.export_vector_node(node.inputs['Vector'])
-            if mapping is not None:
-                params["mapping"] = mapping
-
-        elif node.bl_idname == "ShaderNodeMixRGB":
-            params = {
-                'type': 'mix',
-                'blend type': node.blend_type.lower().replace('_', ' '),
-                'clamp': node.use_clamp,
-                'color1': convert_color_texture_node(ctx, node.inputs['Color1']),
-                'color2': convert_color_texture_node(ctx, node.inputs['Color2']),
-            }
-        else:
-            raise NotImplementedError(
-                f"Color node type {node.bl_idname} is not supported")
-    else:
-        params = ctx.color(socket.default_value)
-
-    return params
 
 
 def make_two_sided(ctx, bsdf):
@@ -294,13 +25,9 @@ def convert_diffuse_material(ctx, current_node):
             {'WARNING'}, f"{current_node.name}: 'Roughness' parameter is currently not supported in Darts. Ignoring.")
     params = {
         'type': 'lambertian',
-        'albedo': convert_color_texture_node(ctx, current_node.inputs['Color'])
+        'albedo': textures.convert_texture_node(ctx, current_node.inputs['Color'])
     }
     return make_two_sided(ctx, params)
-
-
-def roughness_to_blinn_exponent(alpha):
-    return max(2.0 / (alpha * alpha) - 1.0, 0.0)
 
 
 def convert_glossy_material(ctx, current_node):
@@ -314,17 +41,17 @@ def convert_glossy_material(ctx, current_node):
             })
 
             params.update({
-                'roughness': convert_float_texture_node(ctx,
-                                                        current_node.inputs['Roughness']),
+                'roughness': textures.convert_texture_node(ctx,
+                                                           current_node.inputs['Roughness']),
             })
             if 'Anisotropy' in current_node.inputs:
                 params.update({
-                    'anisotropy': convert_float_texture_node(ctx,
-                                                             current_node.inputs['Anisotropy']),
+                    'anisotropy': textures.convert_texture_node(ctx,
+                                                                current_node.inputs['Anisotropy']),
                 })
             if 'Rotation' in current_node.inputs:
                 params.update({
-                    'rotation': convert_float_texture_node(ctx, current_node.inputs['Rotation']),
+                    'rotation': textures.convert_texture_node(ctx, current_node.inputs['Rotation']),
                 })
 
         else:
@@ -333,7 +60,7 @@ def convert_glossy_material(ctx, current_node):
             })
 
         params.update({
-            'color': convert_color_texture_node(ctx, current_node.inputs['Color']),
+            'color': textures.convert_texture_node(ctx, current_node.inputs['Color']),
         })
 
     elif ctx.glossy_mode == 'blinn-phong' or ctx.glossy_mode == 'phong':
@@ -341,6 +68,9 @@ def convert_glossy_material(ctx, current_node):
             raise NotImplementedError(
                 "Phong and Blinn-Phong roughness parameter doesn't support textures in Darts")
         else:
+            def roughness_to_blinn_exponent(alpha):
+                return max(2.0 / (alpha * alpha) - 1.0, 0.0)
+
             roughness = roughness_to_blinn_exponent(
                 pow(current_node.inputs['Roughness'].default_value, 2))
             if ctx.glossy_mode == 'phong':
@@ -359,14 +89,14 @@ def convert_glossy_material(ctx, current_node):
             })
 
         params.update({
-            'albedo': convert_color_texture_node(ctx, current_node.inputs['Color']),
+            'albedo': textures.convert_texture_node(ctx, current_node.inputs['Color']),
         })
     elif ctx.glossy_mode == 'metal':
         params.update({
             'type': ctx.glossy_mode,
-            'roughness': convert_float_texture_node(ctx,
-                                                    current_node.inputs['Roughness']) if current_node.distribution != 'SHARP' else 0,
-            'albedo': convert_color_texture_node(ctx, current_node.inputs['Color']),
+            'roughness': textures.convert_texture_node(ctx,
+                                                       current_node.inputs['Roughness']) if current_node.distribution != 'SHARP' else 0,
+            'albedo': textures.convert_texture_node(ctx, current_node.inputs['Color']),
         })
 
     return make_two_sided(ctx, params)
@@ -381,8 +111,8 @@ def convert_glass_material(ctx, current_node):
 
     ior = current_node.inputs['IOR'].default_value
 
-    roughness = convert_float_texture_node(ctx,
-                                           current_node.inputs['Roughness'])
+    roughness = textures.convert_texture_node(ctx,
+                                              current_node.inputs['Roughness'])
 
     if roughness and current_node.distribution != 'SHARP':
         params.update({
@@ -394,7 +124,7 @@ def convert_glass_material(ctx, current_node):
         params['type'] = 'thin dielectric' if ior == 1.0 else 'dielectric'
 
     params['ior'] = ior
-    params['reflectance'] = params['transmittance'] = convert_color_texture_node(
+    params['reflectance'] = params['transmittance'] = textures.convert_texture_node(
         ctx, current_node.inputs['Color'])
 
     return params
@@ -429,7 +159,7 @@ def convert_transparent_material(ctx, current_node):
 
     return {
         'type': 'transparent',
-        'color': convert_color_texture_node(ctx, current_node.inputs['Color'])
+        'color': textures.convert_texture_node(ctx, current_node.inputs['Color'])
     }
 
 
@@ -442,49 +172,67 @@ def convert_mix_material(ctx, current_node):
 
     return {
         'type': 'blend',
-        'amount': convert_float_texture_node(ctx, current_node.inputs['Fac']),
+        'amount': textures.convert_texture_node(ctx, current_node.inputs['Fac']),
+        'a': cycles_material_to_dict(ctx, mat_I),
+        'b': cycles_material_to_dict(ctx, mat_II)
+    }
+
+
+def convert_add_material(ctx, current_node):
+    if not current_node.inputs[1].is_linked or not current_node.inputs[2].is_linked:
+        raise NotImplementedError("Add shader is not linked to two materials")
+
+    mat_I = current_node.inputs[1].links[0].from_node
+    mat_II = current_node.inputs[2].links[0].from_node
+
+    return {
+        'type': 'add',
         'a': cycles_material_to_dict(ctx, mat_I),
         'b': cycles_material_to_dict(ctx, mat_II)
     }
 
 
 def wrap_with_bump_or_normal_map(ctx, node, nested):
-    if ctx.use_normal_maps and 'Normal' in node.inputs and node.inputs['Normal'].is_linked:
+    if (ctx.use_normal_maps or ctx.use_bump_maps) and 'Normal' in node.inputs and node.inputs['Normal'].is_linked:
         normal_socket = node.inputs['Normal']
         normal_node = normal_socket.links[0].from_node
 
+        if normal_node.inputs['Strength'].is_linked:
+            raise NotImplementedError(
+                "Only default normal/bump map strength value is supported")
+
         if normal_node.bl_idname == "ShaderNodeNormalMap":
-            bump = False
-            wrapper_type = 'normal map'
-            texture_name = 'normals'
+            if not ctx.use_normal_maps:
+                return nested
+
+            if normal_node.space != 'TANGENT':
+                raise NotImplementedError(
+                    f"Darts only supports tangent-space normal maps")
+            wrapper = {
+                'type': 'normal map',
+                'normals': textures.convert_texture_node(ctx, normal_node.inputs['Color'].links[0].from_socket),
+                'strength': normal_node.inputs['Strength'].default_value,
+            }
         elif normal_node.bl_idname == "ShaderNodeBump":
-            bump = True
-            wrapper_type = 'bump map'
-            texture_name = 'height'
+            if not ctx.use_bump_maps:
+                return nested
+            wrapper = {
+                'type': 'bump map',
+                'height': textures.convert_texture_node(ctx, normal_node.inputs['Height'].links[0].from_socket),
+                'strength': normal_node.inputs['Strength'].default_value,
+                'distance': normal_node.inputs['Distance'].default_value,
+                'invert': normal_node.invert,
+            }
         else:
             raise NotImplementedError(
-                "Only normal map and bump nodes supported")
-
-        # wrap the material in a normal map adaptor
-        wrapper = {
-            'type': wrapper_type
-        }
+                "Only normal map and bump nodes supported for 'Normal' input")
 
         if 'name' in nested:
             wrapper['name'] = nested.pop('name')
 
-        wrapper[texture_name] = convert_color_texture_node(ctx, normal_socket)
-
-        if normal_node.inputs['Strength'].is_linked:
-            raise NotImplementedError(
-                "Only default normal map strength value is supported")
-        else:
-            wrapper['strength'] = normal_node.inputs['Strength'].default_value
-
         wrapper['nested'] = nested
 
-        ctx.info(
-            f"  Wrapping material '{wrapper['name']}' with a '{wrapper_type}'.")
+        ctx.info(f"  Wrapping material with a '{wrapper['type']}'.")
         return wrapper
     else:
         return nested
@@ -499,6 +247,7 @@ def cycles_material_to_dict(ctx, node, name=None):
         'ShaderNodeBsdfAnisotropic': convert_glossy_material,
         'ShaderNodeBsdfGlass': convert_glass_material,
         'ShaderNodeMixShader': convert_mix_material,
+        'ShaderNodeAddShader': convert_add_material,
         'ShaderNodeEmission': convert_emitter_material,
         'ShaderNodeBsdfTransparent': convert_transparent_material,
     }

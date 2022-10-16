@@ -4,6 +4,8 @@ if "bpy" in locals():
         importlib.reload(scene)
     if "materials" in locals():
         importlib.reload(materials)
+    if "textures" in locals():
+        importlib.reload(textures)
     if "lights" in locals():
         importlib.reload(lights)
     if "geometry" in locals():
@@ -19,7 +21,7 @@ from bpy_extras.io_utils import ExportHelper
 bl_info = {
     "name": "Darts",
     "author": "Wojciech Jarosz, Baptiste Nicolet, Shaojie Jiao, Adrien Gruson, Delio Vicini, Tizian Zeltner",
-    "version": (0, 2, 4),
+    "version": (0, 2, 5),
     "blender": (2, 80, 0),
     "location": "File > Export > Darts exporter (.json)",
     "description": "Export Darts scene format (.json)",
@@ -84,11 +86,6 @@ class DartsExporter(bpy.types.Operator, ExportHelper):
         ),
         default="independent",
     )
-    use_background: BoolProperty(
-        name="Export background",
-        description="Export the background color (constant or envmap)",
-        default=True,
-    )
     use_lights: BoolProperty(
         name="Export lights",
         description="Export Blender lights",
@@ -105,26 +102,6 @@ class DartsExporter(bpy.types.Operator, ExportHelper):
              "Write each Blender object out as a separate mesh (OBJ file)")
         ),
         default="SINGLE",
-    )
-    use_mesh_modifiers: BoolProperty(
-        name="Apply Modifiers",
-        description="Apply modifiers",
-        default=True,
-    )
-    use_normals: BoolProperty(
-        name="Write Normals",
-        description="Export one normal per vertex and per face, to represent flat faces and sharp edges",
-        default=True,
-    )
-    use_uvs: BoolProperty(
-        name="Include UVs",
-        description="Write out the active UV coordinates",
-        default=True,
-    )
-    use_triangles: BoolProperty(
-        name="Triangulate Faces",
-        description="Convert all faces to triangles",
-        default=True,
     )
 
     # Material-related settings
@@ -156,19 +133,71 @@ class DartsExporter(bpy.types.Operator, ExportHelper):
         ),
         default="rough conductor",
     )
+    force_two_sided: BoolProperty(
+        name="Force two-sided materials",
+        description="Wraps all opaque materials in a 'two sided' adapter. Otherwise the back side of opaque materials will be black in Darts by default",
+        default=True,
+    )
+    use_normal_maps: BoolProperty(
+        name="Use normal maps",
+        description="Wraps the Darts material in a 'normal map' adapter if the Blender material has a normal map",
+        default=True,
+    )
+    use_bump_maps: BoolProperty(
+        name="Use bump maps",
+        description="Wraps the Darts material in a 'bump map' adapter if the Blender material has a bump map",
+        default=False,
+    )
+
+    # Texture-related settings
+    enable_background: BoolProperty(
+        name="Background",
+        description="Export background color (constant or envmap). When disabled, Darts' background is set to a fixed 5",
+        default=True,
+    )
     write_texture_files: BoolProperty(
         name="Write textures",
         description="Uncheck this to write out the Darts scene file, but not write out any textures to disk",
         default=True,
     )
-    force_two_sided: BoolProperty(
-        name="Force two-sided materials",
-        description="Wraps all opaque materials in a 'two sided' adapter. Otherwise the back side of opaque materials will be black in Darts by default.",
+    enable_mapping: BoolProperty(
+        name="Texture coords",
+        description="Convert Blender Texture Coordinate and Mapping nodes to a Darts 'mapping' field",
         default=True,
     )
-    use_normal_maps: BoolProperty(
-        name="Use normal maps",
-        description="Wraps the Darts material in a 'normal map' or 'bump map' adapter if the Blender Material has a textured 'Normal'.",
+    enable_fresnel: BoolProperty(
+        name="Fresnel",
+        description="Convert Blender Fresnel shader to a Darts 'fresnel' texture. When disabled, Fresnel nodes are converted to a fixed 0.5",
+        default=True,
+    )
+    enable_layer_weight: BoolProperty(
+        name="Layer Weight",
+        description="Convert Blender Layer Weight shader to a Darts 'layer weight' texture. When disabled, Layer Weight nodes are converted to a fixed 0.5",
+        default=True,
+    )
+    enable_mix_rgb: BoolProperty(
+        name="Mix",
+        description="Convert Blender Mix RGB shader to a Darts 'blend' texture",
+        default=True,
+    )
+    enable_noise: BoolProperty(
+        name="Noise",
+        description="Convert Blender Noise Texture shader to a Darts 'noise' texture. When disabled, Noise textures are converted to a fixed 0.5",
+        default=True,
+    )
+    enable_checker: BoolProperty(
+        name="Checker",
+        description="Convert Blender Checker Texture shader to a Darts 'checker' texture",
+        default=True,
+    )
+    enable_brick: BoolProperty(
+        name="Brick",
+        description="Convert Blender Brick Texture shader to a Darts 'brick' texture",
+        default=True,
+    )
+    enable_blackbody: BoolProperty(
+        name="Blackbody",
+        description="Convert Blender Blackbody shader to a Darts 'blackbody' texture",
         default=True,
     )
 
@@ -240,7 +269,6 @@ class DARTS_PT_export_scene(bpy.types.Panel):
 
         layout.prop(operator, 'integrator')
         layout.prop(operator, 'sampler')
-        layout.prop(operator, 'use_background')
         layout.prop(operator, 'use_lights')
 
 
@@ -267,12 +295,6 @@ class DARTS_PT_export_geometry(bpy.types.Panel):
 
         layout.prop(operator, 'mesh_mode')
         layout.prop(operator, "write_obj_files")
-        sublayout = layout.column()
-        sublayout.enabled = operator.write_obj_files
-        sublayout.prop(operator, 'use_mesh_modifiers')
-        sublayout.prop(operator, 'use_normals')
-        sublayout.prop(operator, 'use_uvs')
-        sublayout.prop(operator, 'use_triangles')
 
 
 class DARTS_PT_export_materials(bpy.types.Panel):
@@ -300,10 +322,46 @@ class DARTS_PT_export_materials(bpy.types.Panel):
 
         sublayout = layout.column()
         sublayout.enabled = (operator.material_mode == 'CONVERT')
-        sublayout.prop(operator, "write_texture_files")
         sublayout.prop(operator, "use_normal_maps")
+        sublayout.prop(operator, "use_bump_maps")
         sublayout.prop(operator, "force_two_sided")
         sublayout.prop(operator, 'glossy_mode')
+
+
+class DARTS_PT_export_textures(bpy.types.Panel):
+    bl_space_type = 'FILE_BROWSER'
+    bl_region_type = 'TOOL_PROPS'
+    bl_label = "Texture conversion"
+    bl_parent_id = "FILE_PT_operator"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+        return operator.bl_idname == "EXPORT_SCENE_OT_darts"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+        sublayout = layout.column(heading="Enable")
+
+        sublayout.prop(operator, "write_texture_files")
+        sublayout.prop(operator, 'enable_mapping')
+        sublayout.prop(operator, 'enable_background')
+        sublayout.prop(operator, 'enable_fresnel')
+        sublayout.prop(operator, "enable_layer_weight")
+        sublayout.prop(operator, "enable_mix_rgb")
+        sublayout.prop(operator, "enable_noise")
+        sublayout.prop(operator, "enable_checker")
+        sublayout.prop(operator, 'enable_brick')
+        sublayout.prop(operator, 'enable_blackbody')
 
 
 def menu_func_export(self, context):
@@ -315,7 +373,8 @@ classes = (
     DARTS_PT_export_include,
     DARTS_PT_export_scene,
     DARTS_PT_export_geometry,
-    DARTS_PT_export_materials
+    DARTS_PT_export_materials,
+    DARTS_PT_export_textures
 )
 
 

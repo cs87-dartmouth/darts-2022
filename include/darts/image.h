@@ -10,15 +10,15 @@
 #include <darts/common.h>
 #include <darts/math.h>
 
-/// A floating-point RGB image
-class Image3f : public Array2d<Color3f>
+/// An image with a generic pixel type
+template <typename T>
+class Image : public Array2d<T>
 {
-    using Base = Array2d<Color3f>;
+    using Base = Array2d<T>;
 
 public:
-
     /// Default constructor (empty image)
-    Image3f() : Base()
+    Image() : Base()
     {
     }
     /**
@@ -27,7 +27,7 @@ public:
         \param w     The width of the image
         \param h     The height of the image
      */
-    Image3f(int w, int h) : Base(w, h)
+    Image(int w, int h) : Base(w, h)
     {
     }
 
@@ -38,10 +38,11 @@ public:
         \param h     The height of the image
         \param v     The Color to set all pixels
      */
-    Image3f(int w, int h, const Color3f &v) : Base(w, h)
+    Image(int w, int h, const T &v) : Base(w, h)
     {
         reset(v);
     }
+
     /**
         Load an image from file
 
@@ -83,7 +84,22 @@ public:
     }
 };
 
+/// A floating-point RGB image
+using Image3f = Image<Color3f>;
+/// A floating-point RGBA image
+using Image4f = Image<Color4f>;
+
+template <>
+bool Image3f::load(const std::string &filename, bool raw);
+template <>
+bool Image4f::load(const std::string &filename, bool raw);
+
+template <>
+bool Image3f::save(const std::string &filename, float gain);
+template <>
+bool Image4f::save(const std::string &filename, float gain);
+
 /**
     \file
-    \brief Class #Image3f
+    \brief Class #Image, #Image3f, and #Image4f
 */
