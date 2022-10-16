@@ -5,7 +5,6 @@
 */
 
 #include <darts/factory.h>
-#include <darts/image.h>
 #include <darts/parallel.h>
 #include <darts/progress.h>
 #include <darts/sampling.h>

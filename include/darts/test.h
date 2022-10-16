@@ -8,6 +8,7 @@
 #include <darts/array2d.h>
 #include <darts/common.h>
 #include <darts/fwd.h>
+#include <darts/image.h>
 
 /// Base class for unit tests in Darts
 struct Test
