@@ -21,7 +21,7 @@ from bpy_extras.io_utils import ExportHelper
 bl_info = {
     "name": "Darts",
     "author": "Wojciech Jarosz, Baptiste Nicolet, Shaojie Jiao, Adrien Gruson, Delio Vicini, Tizian Zeltner",
-    "version": (0, 2, 6),
+    "version": (0, 2, 7),
     "blender": (2, 80, 0),
     "location": "File > Export > Darts exporter (.json)",
     "description": "Export Darts scene format (.json)",
@@ -200,6 +200,16 @@ class DartsExporter(bpy.types.Operator, ExportHelper):
         description="Convert Blender Blackbody shader to a Darts 'blackbody' texture",
         default=True,
     )
+    enable_wave: BoolProperty(
+        name="Wave",
+        description="Convert Blender Wave Texture shader to a Darts 'wave' texture",
+        default=True,
+    )
+    enable_wavelength: BoolProperty(
+        name="Wavelength",
+        description="Convert Blender Wavelength shader to a Darts 'wavelength' texture",
+        default=True,
+    )
     enable_coord: BoolProperty(
         name="Coord texture",
         description="Convert Blender Texture Coordinate/Mapping nodes into Darts 'coord' textures",
@@ -358,16 +368,18 @@ class DARTS_PT_export_textures(bpy.types.Panel):
         sublayout = layout.column(heading="Enable")
 
         sublayout.prop(operator, "write_texture_files")
-        sublayout.prop(operator, 'enable_mapping')
         sublayout.prop(operator, 'enable_background')
+        sublayout.prop(operator, 'enable_blackbody')
+        sublayout.prop(operator, 'enable_brick')
+        sublayout.prop(operator, 'enable_coord')
+        sublayout.prop(operator, "enable_checker")
         sublayout.prop(operator, 'enable_fresnel')
         sublayout.prop(operator, "enable_layer_weight")
+        sublayout.prop(operator, 'enable_mapping')
         sublayout.prop(operator, "enable_mix_rgb")
         sublayout.prop(operator, "enable_noise")
-        sublayout.prop(operator, "enable_checker")
-        sublayout.prop(operator, 'enable_brick')
-        sublayout.prop(operator, 'enable_blackbody')
-        sublayout.prop(operator, 'enable_coord')
+        sublayout.prop(operator, 'enable_wave')
+        sublayout.prop(operator, 'enable_wavelength')
 
 
 def menu_func_export(self, context):

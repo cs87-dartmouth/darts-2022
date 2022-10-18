@@ -50,6 +50,8 @@ class SceneWriter:
                  enable_checker,
                  enable_brick,
                  enable_blackbody,
+                 enable_wave,
+                 enable_wavelength,
                  enable_coord):
         self.context = context
         self.report = report
@@ -82,6 +84,8 @@ class SceneWriter:
         self.enable_checker = enable_checker
         self.enable_brick = enable_brick
         self.enable_blackbody = enable_blackbody
+        self.enable_wavelength = enable_wavelength
+        self.enable_wave = enable_wave
         self.enable_coord = enable_coord
 
         self.filepath = filepath

@@ -198,6 +198,30 @@ def convert_brick_texture_node(ctx, out_socket):
     return params
 
 
+def convert_wave_texture_node(ctx, out_socket):
+    if not ctx.enable_wave:
+        return ctx.color(0.5)
+
+    node = out_socket.node
+    profiles = {"SIN": "sine", "SAW": "saw", "TRI": "triangle"}
+    params = {
+        'type': 'wave',
+        'wave type': node.wave_type.lower(),
+        'direction': node.bands_direction.lower() if node.wave_type == 'BANDS' else node.rings_direction.lower(),
+        'profile': profiles[node.wave_profile],
+        'scale': convert_texture_node(ctx, node.inputs['Scale']),
+        'distortion': convert_texture_node(ctx, node.inputs['Distortion']),
+        'detail': convert_texture_node(ctx, node.inputs['Detail']),
+        'detail scale': convert_texture_node(ctx, node.inputs['Detail Scale']),
+        'detail roughness': convert_texture_node(ctx, node.inputs['Detail Roughness']),
+        'phase offset': convert_texture_node(ctx, node.inputs['Phase Offset']),
+    }
+
+    add_vector_node_field(ctx, params, node.inputs['Vector'])
+
+    return params
+
+
 def convert_noise_texture_node(ctx, out_socket):
     if not ctx.enable_noise:
         return ctx.color(0.5)
@@ -289,6 +313,17 @@ def convert_blackbody_node(ctx, out_socket):
     }
 
 
+def convert_wavelength_node(ctx, out_socket):
+    if not ctx.enable_wavelength:
+        return dummy_color(ctx)
+
+    node = out_socket.node
+    return {
+        'type': 'wavelength',
+        'wavelength': convert_texture_node(ctx, node.inputs['Wavelength']),
+    }
+
+
 def convert_coord_texture_node(ctx, out_socket):
     if not ctx.enable_coord:
         return dummy_color(ctx)
@@ -313,7 +348,9 @@ def convert_texture_node(ctx, socket):
         'ShaderNodeTexNoise': convert_noise_texture_node,
         'ShaderNodeTexChecker': convert_checker_texture_node,
         'ShaderNodeTexBrick': convert_brick_texture_node,
+        'ShaderNodeTexWave': convert_wave_texture_node,
         'ShaderNodeBlackbody': convert_blackbody_node,
+        'ShaderNodeWavelength': convert_wavelength_node,
         'ShaderNodeTexCoord': convert_coord_texture_node,
         'ShaderNodeMapping': convert_coord_texture_node,
     }
