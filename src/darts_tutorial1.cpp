@@ -500,57 +500,76 @@ void test_materials()
 
     // And a fictitious ray
     Ray3f ray(Vec3f(2.0f, 3.0f, -1.0f), Vec3f(-1.0f, -1.0f, 1.0f));
+    Vec3f reflected = normalize(reflect(ray.d, normal));
+
+    Vec3f   correct_origin      = surface_point;
+    Color3f correct_attenuation = surface_color;
 
     // Now, let's test your implementation!
-    Ray3f   lambert_scattered;
-    Color3f lambert_attenuation;
-    spdlog::info("Testing lambert scatter");
-    if (lambert_material->scatter(ray, hit, lambert_attenuation, lambert_scattered))
+    spdlog::info("Testing Lambertian::scatter");
+    float lambert_avg_cos   = 0.f;
+    float max_lambert_error = 0.f;
+    bool  scattering_failed = false;
+    int   num_samples       = 100000;
+    for (auto i : range(num_samples))
     {
-        Vec3f   correct_origin      = surface_point;
-        Color3f correct_attenuation = surface_color;
-        Vec3f   correct_direction(0.28158706f, 1.3981481f, 0.39526805f);
-
-        spdlog::info("Scattered ray origin is:\n{}, and it should be:\n{}.", lambert_scattered.o, correct_origin);
-        spdlog::info("Attenuation is:\n{}, and it should be:\n{}.", lambert_attenuation, correct_attenuation);
-        spdlog::info("Ray direction is:\n{}, and it should be:\n{}.", lambert_scattered.d, correct_direction);
-
-        float lambertError = std::max({maxelem(abs(correct_origin - lambert_scattered.o)),
-                                       maxelem(abs(lambert_attenuation - correct_attenuation)),
-                                       maxelem(abs(correct_direction - lambert_scattered.d))});
-
-        if (lambertError > 1e-5f)
-            spdlog::error("Result might be incorrect!");
+        Ray3f   lambert_scattered;
+        Color3f lambert_attenuation;
+        if (lambert_material->scatter(ray, hit, lambert_attenuation, lambert_scattered))
+        {
+            lambert_avg_cos += dot(normal, normalize(lambert_scattered.d));
+            max_lambert_error = std::max({maxelem(abs(correct_origin - lambert_scattered.o)),
+                                          maxelem(abs(lambert_attenuation - correct_attenuation)), max_lambert_error});
+        }
         else
-            spdlog::info("Result correct!\n");
+            scattering_failed = true;
     }
-    else
-        spdlog::error("Lambert scatter incorrect! Scattering should have been successful\n");
 
-    Ray3f   metalScattered;
-    Color3f metalAttenuation;
-    spdlog::info("Testing metal scatter");
-    if (metal_material->scatter(ray, hit, metalAttenuation, metalScattered))
+    if (max_lambert_error > 1e-5f)
+        spdlog::error("Lambertian scattered origin and attenuation error too high. Result might be incorrect!");
+
+    if (scattering_failed)
+        spdlog::error("Lambertian incorrect! Scatter function returned false\n");
+
+    lambert_avg_cos /= num_samples;
+
+    // The true average cosine can be computed as:
+    // Integrate[(Cos[t]^2 Sin[t])/Pi, {p, 0, 2 Pi}, {t, 0, Pi/2}] = 2/3
+    spdlog::info("Average cosine of samples is: {}; This should be close to 2/3.", lambert_avg_cos);
+    if (std::abs(lambert_avg_cos - 2 / 3.f) > 2e-3f)
+        spdlog::error("Result might be incorrect!");
+    else
+        spdlog::info("Result correct!\n");
+
+    spdlog::info("Testing Metal::scatter");
+    float metal_min_cos   = 100.f;
+    float max_metal_error = 0.f;
+    scattering_failed     = false;
+    for (auto i : range(num_samples))
     {
-        Vec3f   correct_origin      = surface_point;
-        Color3f correct_attenuation = surface_color;
-        Vec3f   correct_direction(0.20361885f, 1.2604053f, -0.16116261f);
-
-        spdlog::info("Scattered! Ray origin is:\n{}, and it should be:\n{}.", metalScattered.o, correct_origin);
-        spdlog::info("Attenuation is:\n{}, and it should be:\n{}.", metalAttenuation, correct_attenuation);
-        spdlog::info("Ray direction is:\n{}, and it should be:\n{}.", metalScattered.d, correct_direction);
-
-        float metalError = std::max({maxelem(abs(correct_origin - metalScattered.o)),
-                                     maxelem(abs(metalAttenuation - correct_attenuation)),
-                                     maxelem(abs(correct_direction - metalScattered.d))});
-
-        if (metalError > 1e-5f)
-            spdlog::error("Result might be incorrect!");
+        Ray3f   metal_scattered;
+        Color3f metal_attenuation;
+        if (metal_material->scatter(ray, hit, metal_attenuation, metal_scattered))
+        {
+            metal_min_cos   = std::min(dot(reflected, normalize(metal_scattered.d)), metal_min_cos);
+            max_metal_error = std::max({maxelem(abs(correct_origin - metal_scattered.o)),
+                                        maxelem(abs(metal_attenuation - correct_attenuation)), max_metal_error});
+        }
         else
-            spdlog::info("Result correct!\n");
+            scattering_failed = true;
     }
+
+    if (max_metal_error > 1e-5f)
+        spdlog::error("Metal scattered origin and attenuation error too high. Result might be incorrect!");
+
+    if (scattering_failed)
+        spdlog::error("Metal incorrect! Scatter function returned false\n");
+
+    spdlog::info("Minimum cosine of samples is: {}; This should be close to 0.9539391.", metal_min_cos);
+    if (std::abs(metal_min_cos - 0.9539391f) > 1e-2f)
+        spdlog::error("Result might be incorrect!");
     else
-        spdlog::error("Metal scatter incorrect! Scattering should have been successful\n");
+        spdlog::info("Result correct!\n");
 }
 
 /// Now that we can scatter off of surfaces, let's try this out and render a scene with different materials

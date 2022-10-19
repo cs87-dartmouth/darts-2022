@@ -26,14 +26,12 @@ list(
   src/tests/material_sample_test.cpp
   # Additional files for PA3 below
   # Additional files for PA2 below
-  include/darts/test.h
   include/darts/box.h
   include/darts/mesh.h
   include/darts/triangle.h
   src/surfaces/bbh.cpp
   src/surfaces/mesh.cpp
   src/surfaces/triangle.cpp
-  src/tests/test.cpp
   src/tests/intersection_test.cpp
   # Additional files for PA1 below
   include/darts/camera.h
@@ -46,6 +44,7 @@ list(
   include/darts/stats.h
   include/darts/surface.h
   include/darts/surface_group.h
+  include/darts/test.h
   include/darts/transform.h
   src/camera.cpp
   src/example_scenes.cpp
@@ -61,6 +60,8 @@ list(
   src/surfaces/sphere.cpp
   src/surfaces/surface.cpp
   src/surfaces/surface_group.cpp
+  src/tests/material_scatter_test.cpp
+  src/tests/test.cpp
   # The files below are included in the PA0 basecode
   include/darts/array2d.h
   include/darts/common.h

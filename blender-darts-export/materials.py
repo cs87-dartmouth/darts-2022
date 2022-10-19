@@ -20,12 +20,10 @@ def make_two_sided(ctx, bsdf):
 
 
 def convert_diffuse_material(ctx, current_node):
-    if current_node.inputs['Roughness'].is_linked or current_node.inputs['Roughness'].default_value != 0.0:
-        ctx.report(
-            {'WARNING'}, f"{current_node.name}: 'Roughness' parameter is currently not supported in Darts. Ignoring.")
     params = {
         'type': 'lambertian',
-        'albedo': textures.convert_texture_node(ctx, current_node.inputs['Color'])
+        'albedo': textures.convert_texture_node(ctx, current_node.inputs['Color']),
+        'roughness': textures.convert_texture_node(ctx, current_node.inputs['Roughness'])
     }
     return make_two_sided(ctx, params)
 

@@ -1,0 +1,73 @@
+{
+    "type": "tests",
+    "tests": [
+        {
+            "type": "scatter material",
+            "material": {
+                "type": "lambertian",
+                "albedo": 1.0
+            },
+            "normal": [
+                0, 0, 1
+            ],
+            "name": "lambertian"
+        },
+        {
+            "type": "scatter material",
+            "material": {
+                "type": "lambertian",
+                "albedo": 1.0
+            },
+            "normal": [
+                0.25, 0.5, 1.0
+            ],
+            "name": "lambertian-rotated"
+        },
+        {
+            "type": "scatter material",
+            "material": {
+                "type": "metal",
+                "albedo": 1.0,
+                "roughness": 0.1
+            },
+            "normal": [
+                0, 0, 1
+            ],
+            "name": "metal"
+        },
+        {
+            "type": "scatter material",
+            "material": {
+                "type": "metal",
+                "albedo": 1.0,
+                "roughness": 0.1
+            },
+            "normal": [
+                0.25, 0.5, 1.0
+            ],
+            "name": "metal-rotated"
+        }, {
+            "type": "scatter material",
+            "material": {
+                "type": "metal",
+                "albedo": 1.0,
+                "roughness": 0.5
+            },
+            "normal": [
+                0, 0, 1
+            ],
+            "name": "metal-rough"
+        }, {
+            "type": "scatter material",
+            "material": {
+                "type": "metal",
+                "albedo": 1.0,
+                "roughness": 0.5
+            },
+            "normal": [
+                0.25, 0.5, 1.0
+            ],
+            "name": "metal-rough-rotated"
+        }
+    ]
+}

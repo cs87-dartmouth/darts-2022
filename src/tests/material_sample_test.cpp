@@ -48,14 +48,13 @@ bool MaterialSampleTest::sample(Vec3f &dir, const Vec2f &rv, float rv1)
     if (!material->sample(incoming, hit, record, rv, rv1))
         return false;
 
-    dir = record.wo;
+    dir = normalize(record.wo);
 
     if (record.is_specular)
         any_specular = true;
 
     // Sanity check to make sure directions are valid
-    Vec3f wo = normalize(record.wo);
-    if (dot(wo, hit.sn) < -Ray3f::epsilon)
+    if (dot(dir, hit.sn) < -Ray3f::epsilon)
     {
         any_below_hemisphere = true;
         return false;

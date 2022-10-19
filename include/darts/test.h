@@ -24,27 +24,31 @@ struct Test
 /// Check if this json object contains tests, and run them
 void run_tests(const json &j);
 
-struct SampleTest : public Test
+struct ScatterTest : public Test
 {
-    SampleTest(const json &j);
+    ScatterTest(const json &j);
 
-    Vec2i          direction_to_pixel(const Vec3f &dir) const;
-    Vec3f          pixel_to_direction(const Vec2f &pixel) const;
-    static Image3f generate_heatmap(const Array2d<float> &density, float max_value);
-
-    virtual void  run() override;
-    virtual bool  sample(Vec3f &dir, const Vec2f &rv, float rv1) = 0;
-    virtual float pdf(Vec3f &dir, float rv1)                     = 0;
-    virtual void  print_more_statistics()
+    virtual void run() override;
+    virtual bool sample(Vec3f &dir, const Vec2f &rv, float rv1) = 0;
+    virtual void print_more_statistics()
     {
     }
 
     string   name;
-    uint32_t image_width;
-    uint32_t image_height;
+    Vec2i    image_size;
     uint64_t total_samples;
-    uint32_t super_samples;
     uint32_t up_samples;
+    float    max_value;
+};
+
+struct SampleTest : public ScatterTest
+{
+    SampleTest(const json &j);
+
+    virtual void  run() override;
+    virtual float pdf(Vec3f &dir, float rv1) = 0;
+
+    uint32_t super_samples;
 };
 
 /**
