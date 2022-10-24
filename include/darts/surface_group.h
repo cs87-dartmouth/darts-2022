@@ -38,6 +38,9 @@ public:
 
     Box3f local_bounds() const override;
 
+    pair<const Surface *, float> sample_child(float &rv1) const override;
+    float                        child_prob() const override;
+    float                        pdf(const Vec3f &o, const Vec3f &v) const override;
 
 protected:
     vector<shared_ptr<Surface>> m_surfaces; ///< All children

@@ -90,7 +90,7 @@ bool Triangle::intersect(const Ray3f &ray, HitInfo &hit) const
     }
 
     return single_triangle_intersect(ray, p0, p1, p2, n0, n1, n2, t0, t1, t2, hit,
-                                     m_mesh->materials[m_mesh->Fm[m_face_idx]].get());
+                                     m_mesh->materials[m_mesh->Fm[m_face_idx]].get(), this, m_mesh.get());
 }
 
 // Ray-Triangle intersection
@@ -99,7 +99,7 @@ bool Triangle::intersect(const Ray3f &ray, HitInfo &hit) const
 // t0, t1, t2 - optional per vertex texture coordinates
 bool single_triangle_intersect(const Ray3f &ray, const Vec3f &p0, const Vec3f &p1, const Vec3f &p2, const Vec3f *n0,
                                const Vec3f *n1, const Vec3f *n2, const Vec2f *t0, const Vec2f *t1, const Vec2f *t2,
-                               HitInfo &hit, const Material *material)
+                               HitInfo &hit, const Material *material, const Surface *surface, const Mesh *mesh)
 {
     ++g_num_total_intersection_tests;
     // TODO: Implement ray-triangle intersection

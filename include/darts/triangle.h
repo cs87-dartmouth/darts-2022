@@ -22,6 +22,11 @@ public:
     Box3f bounds() const override;
 
 
+    bool is_emissive() const override
+    {
+        return m_mesh && m_mesh->materials[m_mesh->Fm[m_face_idx]] &&
+               m_mesh->materials[m_mesh->Fm[m_face_idx]]->is_emissive();
+    }
 
 protected:
     // convenience function to access the i-th vertex (i must be 0, 1, or 2)
@@ -37,7 +42,8 @@ protected:
 /// Intersect a ray with a single triangle. \ingroup Surfaces
 bool single_triangle_intersect(const Ray3f &ray, const Vec3f &v0, const Vec3f &v1, const Vec3f &v2, const Vec3f *n0,
                                const Vec3f *n1, const Vec3f *n2, const Vec2f *t0, const Vec2f *t1, const Vec2f *t2,
-                               HitInfo &isect, const Material *material = nullptr);
+                               HitInfo &hit, const Material *material = nullptr, const Surface *surface = nullptr,
+                               const Mesh *mesh = nullptr);
 
 /**
     \file

@@ -181,6 +181,11 @@ Mesh::Mesh(const json &j)
 
     progress.set_done();
 
+    // compute object_to_texture space transform
+    auto d           = bbox_o.diagonal();
+    auto m           = mul(scaling_matrix(la::select(equal(d, 0.f), 1.f, 1.f / d)), translation_matrix(-bbox_o.min));
+    object_to_texture = Transform(m);
+
     if (!warn.empty())
         spdlog::warn("{}\n", warn);
 

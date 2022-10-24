@@ -19,37 +19,35 @@ def make_two_sided(ctx, bsdf):
         return bsdf
 
 
-def convert_diffuse_material(ctx, current_node):
+def convert_diffuse_material(ctx, node):
     params = {
         'type': 'lambertian',
-        'albedo': textures.convert_texture_node(ctx, current_node.inputs['Color']),
-        'roughness': textures.convert_texture_node(ctx, current_node.inputs['Roughness'])
+        'albedo': textures.convert_texture_node(ctx, node.inputs['Color']),
+        'roughness': textures.convert_texture_node(ctx, node.inputs['Roughness'])
     }
     return make_two_sided(ctx, params)
 
 
-def convert_glossy_material(ctx, current_node):
+def convert_glossy_material(ctx, node):
     params = {}
 
     if ctx.glossy_mode == 'rough conductor':
-        if current_node.distribution != 'SHARP':
+        if node.distribution != 'SHARP':
             params.update({
                 'type': ctx.glossy_mode,
-                'distribution': RoughnessMode[current_node.distribution],
+                'distribution': RoughnessMode[node.distribution],
             })
 
             params.update({
-                'roughness': textures.convert_texture_node(ctx,
-                                                           current_node.inputs['Roughness']),
+                'roughness': textures.convert_texture_node(ctx, node.inputs['Roughness']),
             })
-            if 'Anisotropy' in current_node.inputs:
+            if 'Anisotropy' in node.inputs:
                 params.update({
-                    'anisotropy': textures.convert_texture_node(ctx,
-                                                                current_node.inputs['Anisotropy']),
+                    'anisotropy': textures.convert_texture_node(ctx, node.inputs['Anisotropy']),
                 })
-            if 'Rotation' in current_node.inputs:
+            if 'Rotation' in node.inputs:
                 params.update({
-                    'rotation': textures.convert_texture_node(ctx, current_node.inputs['Rotation']),
+                    'rotation': textures.convert_texture_node(ctx, node.inputs['Rotation']),
                 })
 
         else:
@@ -58,11 +56,11 @@ def convert_glossy_material(ctx, current_node):
             })
 
         params.update({
-            'color': textures.convert_texture_node(ctx, current_node.inputs['Color']),
+            'color': textures.convert_texture_node(ctx, node.inputs['Color']),
         })
 
     elif ctx.glossy_mode == 'blinn-phong' or ctx.glossy_mode == 'phong':
-        if current_node.inputs['Roughness'].is_linked:
+        if node.inputs['Roughness'].is_linked:
             raise NotImplementedError(
                 "Phong and Blinn-Phong roughness parameter doesn't support textures in Darts")
         else:
@@ -70,15 +68,15 @@ def convert_glossy_material(ctx, current_node):
                 return max(2.0 / (alpha * alpha) - 1.0, 0.0)
 
             roughness = roughness_to_blinn_exponent(
-                pow(current_node.inputs['Roughness'].default_value, 2))
+                pow(node.inputs['Roughness'].default_value, 2))
             if ctx.glossy_mode == 'phong':
                 roughness = roughness / 4
 
-        if current_node.distribution != 'SHARP':
+        if node.distribution != 'SHARP':
             params.update({
                 'type': ctx.glossy_mode,
                 'exponent': roughness,
-                'distribution': RoughnessMode[current_node.distribution],
+                'distribution': RoughnessMode[node.distribution],
             })
         else:
             params.update({
@@ -87,60 +85,59 @@ def convert_glossy_material(ctx, current_node):
             })
 
         params.update({
-            'albedo': textures.convert_texture_node(ctx, current_node.inputs['Color']),
+            'albedo': textures.convert_texture_node(ctx, node.inputs['Color']),
         })
     elif ctx.glossy_mode == 'metal':
         params.update({
             'type': ctx.glossy_mode,
             'roughness': textures.convert_texture_node(ctx,
-                                                       current_node.inputs['Roughness']) if current_node.distribution != 'SHARP' else 0,
-            'albedo': textures.convert_texture_node(ctx, current_node.inputs['Color']),
+                                                       node.inputs['Roughness']) if node.distribution != 'SHARP' else 0,
+            'albedo': textures.convert_texture_node(ctx, node.inputs['Color']),
         })
 
     return make_two_sided(ctx, params)
 
 
-def convert_glass_material(ctx, current_node):
+def convert_glass_material(ctx, node):
     params = {}
 
-    if current_node.inputs['IOR'].is_linked:
+    if node.inputs['IOR'].is_linked:
         ctx.report(
-            {'WARNING'}, f"{current_node.name}: Textured IOR values are not supported in Darts. Using the default value instead.")
+            {'WARNING'}, f"{node.name}: Textured IOR values are not supported in Darts. Using the default value instead.")
 
-    ior = current_node.inputs['IOR'].default_value
+    ior = node.inputs['IOR'].default_value
 
-    roughness = textures.convert_texture_node(ctx,
-                                              current_node.inputs['Roughness'])
+    roughness = textures.convert_texture_node(ctx, node.inputs['Roughness'])
 
-    if roughness and current_node.distribution != 'SHARP':
+    if roughness and node.distribution != 'SHARP':
         params.update({
             'type': 'rough dielectric',
             'roughness': roughness,
-            'distribution': RoughnessMode[current_node.distribution],
+            'distribution': RoughnessMode[node.distribution],
         })
     else:
         params['type'] = 'thin dielectric' if ior == 1.0 else 'dielectric'
 
     params['ior'] = ior
     params['reflectance'] = params['transmittance'] = textures.convert_texture_node(
-        ctx, current_node.inputs['Color'])
+        ctx, node.inputs['Color'])
 
     return params
 
 
-def convert_emitter_material(ctx, current_node):
-    if current_node.inputs['Strength'].is_linked:
+def convert_emitter_material(ctx, node):
+    if node.inputs['Strength'].is_linked:
         raise NotImplementedError(
             "Only default emitter strength value is supported")
     else:
-        radiance = current_node.inputs['Strength'].default_value
+        radiance = node.inputs['Strength'].default_value
 
-    if current_node.inputs['Color'].is_linked:
+    if node.inputs['Color'].is_linked:
         raise NotImplementedError(
             "Only default emitter color is supported")  # TODO: rgb input
     else:
         radiance = [
-            x * radiance for x in current_node.inputs['Color'].default_value[:]]
+            x * radiance for x in node.inputs['Color'].default_value[:]]
 
     if np.sum(radiance) == 0:
         ctx.report(
@@ -153,35 +150,35 @@ def convert_emitter_material(ctx, current_node):
     }
 
 
-def convert_transparent_material(ctx, current_node):
+def convert_transparent_material(ctx, node):
 
     return {
         'type': 'transparent',
-        'color': textures.convert_texture_node(ctx, current_node.inputs['Color'])
+        'color': textures.convert_texture_node(ctx, node.inputs['Color'])
     }
 
 
-def convert_mix_material(ctx, current_node):
-    if not current_node.inputs[1].is_linked or not current_node.inputs[2].is_linked:
+def convert_mix_material(ctx, node):
+    if not node.inputs[1].is_linked or not node.inputs[2].is_linked:
         raise NotImplementedError("Mix shader is not linked to two materials")
 
-    mat_I = current_node.inputs[1].links[0].from_node
-    mat_II = current_node.inputs[2].links[0].from_node
+    mat_I = ctx.follow_link(node.inputs[1]).links[0].from_node
+    mat_II = ctx.follow_link(node.inputs[2]).links[0].from_node
 
     return {
         'type': 'blend',
-        'amount': textures.convert_texture_node(ctx, current_node.inputs['Fac']),
+        'amount': textures.convert_texture_node(ctx, node.inputs['Fac']),
         'a': cycles_material_to_dict(ctx, mat_I),
         'b': cycles_material_to_dict(ctx, mat_II)
     }
 
 
-def convert_add_material(ctx, current_node):
-    if not current_node.inputs[1].is_linked or not current_node.inputs[2].is_linked:
+def convert_add_material(ctx, node):
+    if not node.inputs[1].is_linked or not node.inputs[2].is_linked:
         raise NotImplementedError("Add shader is not linked to two materials")
 
-    mat_I = current_node.inputs[1].links[0].from_node
-    mat_II = current_node.inputs[2].links[0].from_node
+    mat_I = ctx.follow_link(node.inputs[1]).links[0].from_node
+    mat_II = ctx.follow_link(node.inputs[2]).links[0].from_node
 
     return {
         'type': 'add',
@@ -192,34 +189,29 @@ def convert_add_material(ctx, current_node):
 
 def wrap_with_bump_or_normal_map(ctx, node, nested):
     if (ctx.use_normal_maps or ctx.use_bump_maps) and 'Normal' in node.inputs and node.inputs['Normal'].is_linked:
-        normal_socket = node.inputs['Normal']
-        normal_node = normal_socket.links[0].from_node
+        n = ctx.follow_link(node.inputs['Normal']).links[0].from_node
 
-        if normal_node.inputs['Strength'].is_linked:
-            raise NotImplementedError(
-                "Only default normal/bump map strength value is supported")
-
-        if normal_node.bl_idname == "ShaderNodeNormalMap":
+        if n.bl_idname == "ShaderNodeNormalMap":
             if not ctx.use_normal_maps:
                 return nested
 
-            if normal_node.space != 'TANGENT':
+            if n.space != 'TANGENT':
                 raise NotImplementedError(
                     f"Darts only supports tangent-space normal maps")
             wrapper = {
                 'type': 'normal map',
-                'normals': textures.convert_texture_node(ctx, normal_node.inputs['Color'].links[0].from_socket),
-                'strength': normal_node.inputs['Strength'].default_value,
+                'normals': textures.convert_texture_node(ctx, n.inputs['Color']),
+                'strength': n.inputs['Strength'].default_value,
             }
-        elif normal_node.bl_idname == "ShaderNodeBump":
+        elif n.bl_idname == "ShaderNodeBump":
             if not ctx.use_bump_maps:
                 return nested
             wrapper = {
                 'type': 'bump map',
-                'height': textures.convert_texture_node(ctx, normal_node.inputs['Height'].links[0].from_socket),
-                'strength': normal_node.inputs['Strength'].default_value,
-                'distance': normal_node.inputs['Distance'].default_value,
-                'invert': normal_node.invert,
+                'height': textures.convert_texture_node(ctx, n.inputs['Height']),
+                'strength': textures.convert_texture_node(ctx, n.inputs['Strength']),
+                'distance': textures.convert_texture_node(ctx, n.inputs['Distance']),
+                'invert': n.invert,
             }
         else:
             raise NotImplementedError(
@@ -287,7 +279,8 @@ def convert_material(ctx, b_mat):
             output_node_id = 'Material Output'
             if output_node_id in b_mat.node_tree.nodes:
                 output_node = b_mat.node_tree.nodes[output_node_id]
-                surface_node = output_node.inputs['Surface'].links[0].from_node
+                surface_node = ctx.follow_link(
+                    output_node.inputs['Surface']).links[0].from_node
                 mat_params = cycles_material_to_dict(ctx,
                                                      surface_node, b_mat.name_full)
                 if 'Displacement' in output_node.inputs and output_node.inputs['Displacement'].is_linked:

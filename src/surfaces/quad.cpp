@@ -14,6 +14,8 @@ public:
 
     bool intersect(const Ray3f &ray, HitInfo &hit) const override;
     Box3f local_bounds() const override;
+    Color3f sample(EmitterRecord &rec, const Vec2f &rv) const override;
+    float   pdf(const Vec3f &o, const Vec3f &v) const override;
 
 protected:
     Vec2f m_size = Vec2f(1.f); ///< The extent of the quad in the (x,y) plane
@@ -69,6 +71,37 @@ Box3f Quad::local_bounds() const
                  Vec3f{m_size.x, m_size.y, 0} + Vec3f{Ray3f::epsilon}};
 }
 
+Color3f Quad::sample(EmitterRecord &rec, const Vec2f &rv) const
+{
+    rec.hit.p   = m_xform.point({(2 * rv.x - 1) * m_size.x, (2 * rv.y - 1) * m_size.y, 0});
+    rec.wi      = rec.hit.p - rec.o;
+    float dist2 = length2(rec.wi);
+    rec.hit.t   = std::sqrt(dist2);
+    rec.hit.mat = m_material.get();
+    rec.hit.gn = rec.hit.sn = m_xform.normal({0, 0, 1});
+    rec.wi /= rec.hit.t;
+
+    // convert to solid angle measure
+    float area   = 4 * length(cross(m_xform.vector({m_size.x, 0, 0}), m_xform.vector({0, m_size.y, 0})));
+    float cosine = std::abs(dot(rec.hit.gn, rec.wi));
+    rec.pdf      = dist2 / (cosine * area);
+
+    return rec.hit.mat->emitted(Ray3f(rec.o, rec.wi), rec.hit) / rec.pdf;
+}
+
+float Quad::pdf(const Vec3f &o, const Vec3f &v) const
+{
+    HitInfo hit;
+    if (this->intersect(Ray3f(o, v), hit))
+    {
+        float area             = 4 * length(cross(m_xform.vector({m_size.x, 0, 0}), m_xform.vector({0, m_size.y, 0})));
+        float distance_squared = hit.t * hit.t * length2(v);
+        float cosine           = std::abs(dot(v, hit.gn) / length(v));
+        return distance_squared / (cosine * area);
+    }
+    else
+        return 0;
+}
 
 
 DARTS_REGISTER_CLASS_IN_FACTORY(Surface, Quad, "quad")

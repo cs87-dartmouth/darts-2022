@@ -62,6 +62,14 @@ public:
         return Color3f(0, 0, 0);
     }
 
+    /**
+        Return whether or not this Material is emissive.
+        This is primarily used to create a global list of emitters for sampling.
+    */
+    virtual bool is_emissive() const
+    {
+        return false;
+    }
 
     /**
        Sample a scattered direction at the surface hitpoint \p hit.
@@ -158,6 +166,7 @@ inline Vec3f reflect(const Vec3f &v, const Vec3f &n)
 {
     return v - 2 * dot(v, n) * n;
 }
+
 
 /** @}*/
 

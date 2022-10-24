@@ -50,7 +50,8 @@ public:
     vector<Vec3i>                      Ft;        ///< Texture indices per face (triangle)
     vector<uint32_t>                   Fm;        ///< One material index per face (triangle)
     vector<shared_ptr<const Material>> materials; ///< All materials in the mesh
-    Transform xform = Transform();                ///< Transformation that the data has already been transformed by
+    Transform                          xform;     ///< Transformation that the data has already been transformed by
+    Transform object_to_texture;                  ///< Transformation from object space to texture (bounding box) space
     Box3f     bbox_w;                             ///< The bounds, after transformation (in world space)
     Box3f     bbox_o;                             ///< The bounds, before transformation (in object space)
 

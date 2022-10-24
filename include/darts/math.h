@@ -268,6 +268,11 @@ inline float luminance(const Color3f &c)
     return dot(c, {0.212671f, 0.715160f, 0.072169f});
 }
 
+inline float luminance(const Color4f &c)
+{
+    return luminance(c.xyz());
+}
+
 // Matplotlib-style false-color maps
 Color3f viridis(float t);
 Color3f inferno(float t);

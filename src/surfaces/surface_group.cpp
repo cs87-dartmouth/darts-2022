@@ -60,6 +60,32 @@ Box3f SurfaceGroup::local_bounds() const
     return m_bounds;
 }
 
+pair<const Surface *, float> SurfaceGroup::sample_child(float &rv1) const
+{
+    if (m_surfaces.size() == 0)
+        throw DartsException("SurfaceGroup::sample_child(): No children were defined!");
+
+    // choose a surface uniformly, and reuse the random number
+    float sx    = rv1 * m_surfaces.size();
+    int   index = clamp((int)sx, 0, (int)m_surfaces.size() - 1);
+    rv1         = sx - index; // remap the random number for reuse
+
+    return {m_surfaces[index].get(), 1.f / m_surfaces.size()};
+}
+
+float SurfaceGroup::child_prob() const
+{
+    return 1.f / m_surfaces.size();
+}
+
+float SurfaceGroup::pdf(const Vec3f &o, const Vec3f &v) const
+{
+    float weight = 1.0f / m_surfaces.size();
+    float sum    = 0.f;
+    for (auto surface : m_surfaces)
+        sum += weight * surface->pdf(o, v);
+    return sum;
+}
 
 
 DARTS_REGISTER_CLASS_IN_FACTORY(Surface, SurfaceGroup, "group")

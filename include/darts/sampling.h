@@ -156,6 +156,53 @@ inline float sample_hemisphere_cosine_power_pdf(float exponent, float cosine)
 
 
 
+/** \name Sampling a spherical cap
+    @{
+*/
+
+/**
+    Uniformly sample a vector on a spherical cap around (0, 0, 1)
+
+    A spherical cap is the subset of a unit sphere whose directions make an angle of less than 'theta' with the north
+    pole. This function expects the cosine of 'theta' as a parameter.
+ */
+inline Vec3f sample_sphere_cap(const Vec2f &rv, float cos_theta_max)
+{
+    return Vec3f{0.f}; // CHANGEME
+}
+
+/// Probability density of #sample_sphere_cap()
+inline float sample_sphere_cap_pdf(float cos_theta, float cos_theta_max)
+{
+    return 0.f; // CHANGEME
+}
+
+/** @}*/
+
+/** \name Sampling a triangle
+    @{
+*/
+
+/**
+    Sample a point uniformly on a triangle with vertices `v0`, `v1`, `v2`.
+
+    \param v0,v1,v2 The vertices of the triangle to sample
+    \param rv       Two random variables uniformly distributed in [0,1)
+*/
+inline Vec3f sample_triangle(const Vec3f &v0, const Vec3f &v1, const Vec3f &v2, const Vec2f &rv)
+{
+    return Vec3f{0.f}; // CHANGEME
+}
+
+/// Sampling density of #sample_triangle()
+inline float sample_triangle_pdf(const Vec3f &v0, const Vec3f &v1, const Vec3f &v2)
+{
+    return 0.f; // CHANGEME
+}
+
+/** @}*/
+
+
 
 /** @}*/
 

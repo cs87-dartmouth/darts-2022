@@ -13,6 +13,8 @@ def convert_vector_node(ctx, socket):
     if not socket.is_linked or not ctx.enable_mapping:
         return None
 
+    socket = ctx.follow_link(socket)
+
     def export_coord_node(ctx, socket):
         from_node = socket.from_node
         if from_node.bl_idname != 'ShaderNodeTexCoord':
@@ -47,7 +49,7 @@ def convert_vector_node(ctx, socket):
             raise NotImplementedError(
                 f"The node {from_node.bl_idname} should be linked with a 'ShaderNodeTexCoord'")
         params.update(export_coord_node(
-            ctx, from_node.inputs['Vector'].links[0]))
+            ctx, ctx.follow_link(from_node.inputs['Vector']).links[0]))
 
         return params
 
@@ -128,9 +130,10 @@ def convert_image_texture_node(ctx, out_socket):
     params = {
         'type': 'image'
     }
+
     # get the relative path to the copied texture from the full path to the original texture
     params['filename'] = export_texture(ctx, node.image)
-    # TODO: texture transform (mapping node)
+
     if node.image.colorspace_settings.name in ['Non-Color', 'Raw', 'Linear']:
         # non color data, tell Darts not to apply gamma conversion to it
         params['raw'] = True
@@ -145,6 +148,18 @@ def convert_image_texture_node(ctx, out_socket):
     else:
         raise NotImplementedError(
             f"Unrecognized output socket '{out_socket.name}' on image texture node")
+
+    params['interpolation'] = node.interpolation.lower()
+
+    if node.extension == 'CLIP':
+        ctx.report(
+            {'WARNING'}, f"'CLIP' extension mode behaves differently in Blender than in Darts.")
+    modes = {"REPEAT": "repeat", "EXTEND": "CLAMP", "CLIP": "black"}
+    params['wrap mode x'] = params['wrap mode y'] = modes[node.extension]
+
+    if node.projection != 'FLAT':
+        ctx.report(
+            {'WARNING'}, f"Darts only supports Blender's 'FLAT' project mode. Ignoring {node.projection}.")
 
     add_vector_node_field(ctx, params, node.inputs['Vector'])
 
@@ -282,6 +297,20 @@ def convert_mix_rgb_node(ctx, out_socket):
     }
 
 
+def convert_clamp_node(ctx, out_socket):
+    # if not ctx.enable_mix_rgb:
+    #     return dummy_color(ctx)
+
+    node = out_socket.node
+    return {
+        'type': 'clamp',
+        'clamp type': node.clamp_type.lower(),
+        'value': convert_texture_node(ctx, node.inputs['Value']),
+        'min': convert_texture_node(ctx, node.inputs['Min']),
+        'max': convert_texture_node(ctx, node.inputs['Max']),
+    }
+
+
 def convert_fresnel_node(ctx, out_socket):
     if not ctx.enable_fresnel:
         return ctx.color(0.5)
@@ -344,6 +373,7 @@ def convert_texture_node(ctx, socket):
         'ShaderNodeFresnel': convert_fresnel_node,
         'ShaderNodeLayerWeight': convert_layer_weight_node,
         'ShaderNodeMixRGB': convert_mix_rgb_node,
+        'ShaderNodeClamp': convert_clamp_node,
         'ShaderNodeRGB': convert_rgb_node,
         'ShaderNodeTexNoise': convert_noise_texture_node,
         'ShaderNodeTexChecker': convert_checker_texture_node,
@@ -357,8 +387,9 @@ def convert_texture_node(ctx, socket):
 
     params = None
     if socket.is_linked:
-        node = socket.links[0].from_node
-        from_socket = socket.links[0].from_socket
+        s = ctx.follow_link(socket)
+        node = s.links[0].from_node
+        from_socket = s.links[0].from_socket
 
         if node.bl_idname in texture_converters:
             ctx.info(f"Converting a '{node.bl_idname}' Blender shader node.")
@@ -396,13 +427,14 @@ def convert_background(ctx, world):
             output_node_id = 'World Output'
             if output_node_id not in world.node_tree.nodes:
                 raise NotImplementedError(
-                    'Failed to export world: Cannot find world output node')
+                    f'Failed to export world: Cannot find world output node. world nodes: {world.node_tree.nodes.keys()}')
 
             output_node = world.node_tree.nodes[output_node_id]
             if not output_node.inputs['Surface'].is_linked:
                 return 0
 
-            surface_node = output_node.inputs['Surface'].links[0].from_node
+            surface_node = ctx.follow_link(
+                output_node.inputs['Surface']).links[0].from_node
             if 'Strength' not in surface_node.inputs:
                 raise NotImplementedError(
                     "Expecting a material with a 'Strength' parameter for a background")
@@ -419,6 +451,7 @@ def convert_background(ctx, world):
             if surface_node.bl_idname in ['ShaderNodeBackground', 'ShaderNodeEmission']:
                 socket = surface_node.inputs['Color']
                 if socket.is_linked:
+                    socket = ctx.follow_link(socket)
                     color_node = socket.links[0].from_node
                     if color_node.bl_idname == 'ShaderNodeTexEnvironment':
                         params = {

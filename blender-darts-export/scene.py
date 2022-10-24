@@ -96,6 +96,15 @@ class SceneWriter:
         if self.verbose:
             self.report({'INFO'}, message)
 
+    def follow_link(self, socket):
+        '''
+        Recursively follow a link potentially via reroute nodes
+        '''
+        if socket.is_linked and socket.links[0].from_node.bl_idname == 'NodeReroute':
+            return self.follow_link(socket.links[0].from_node.inputs[0])
+        else:
+            return socket
+
     def color(self, value):
         '''
         Given a color value, format it for the scene dict.

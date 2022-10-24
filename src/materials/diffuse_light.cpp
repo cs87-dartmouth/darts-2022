@@ -17,6 +17,10 @@ public:
     /// Returns a constant Color3f if the ray hits the surface on the front side.
     Color3f emitted(const Ray3f &ray, const HitInfo &hit) const override;
 
+    bool is_emissive() const override
+    {
+        return true;
+    }
 
 
     Color3f emit; ///< The emissive color of the light
