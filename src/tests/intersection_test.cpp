@@ -32,6 +32,7 @@ struct IntersectionTest : public Test
     IntersectionTest(const json &j);
 
     virtual void run() override;
+    virtual void print_header() const override;
 
     shared_ptr<Surface> surface;
     Ray3f               ray;
@@ -66,9 +67,14 @@ IntersectionTest::IntersectionTest(const json &j)
     threshold  = j.value("threshold", threshold);
 }
 
+void IntersectionTest::print_header() const
+{
+    fmt::print("---------------------------------------------------------------------------\n");
+    fmt::print("Testing surface intersection...\n");
+}
+
 void IntersectionTest::run()
 {
-    spdlog::info("Testing surface intersection...");
     HitInfo hit;
     if (surface->intersect(ray, hit))
     {

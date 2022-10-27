@@ -253,6 +253,9 @@ def convert_noise_texture_node(ctx, out_socket):
         'output': 'float' if out_socket.name == 'Fac' else 'color'
     }
 
+    if dims[node.noise_dimensions] == 4:
+        params['w'] = convert_texture_node(ctx, node.inputs['W'])
+
     add_vector_node_field(ctx,
                           params, node.inputs['Vector'] if dims[node.noise_dimensions] != 1 else node.inputs['W'])
 

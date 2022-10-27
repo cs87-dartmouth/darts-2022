@@ -23,6 +23,7 @@ void run_tests(const json &j)
             try
             {
                 auto test = DartsFactory<Test>::create(t);
+                test->print_header();
                 test->run();
                 num_passed++;
             }
@@ -58,6 +59,17 @@ Image3f generate_heatmap(const Array2d<float> &density, float scale = 1.f)
     return result;
 }
 
+Image3f generate_graymap(const Array2d<float> &density, float scale = 1.f)
+{
+    Image3f result(density.width(), density.height());
+
+    for (int y = 0; y < density.height(); ++y)
+        for (int x = 0; x < density.width(); ++x)
+            result(x, y) = Color3f{density(x, y) * scale};
+
+    return result;
+}
+
 Array2d<float> upsample(const Array2d<float> &img, int factor)
 {
     Array2d<float> upsampled(img.width() * factor, img.height() * factor);
@@ -88,11 +100,14 @@ ScatterTest::ScatterTest(const json &j)
     up_samples    = j.value("up samples", 4);
 }
 
-void ScatterTest::run()
+void ScatterTest::print_header() const
 {
     fmt::print("---------------------------------------------------------------------------\n");
     fmt::print("Running test for \"{}\"\n", name);
+}
 
+void ScatterTest::run()
+{
     // Step 1: Generate histogram of samples
     Array2d<float> histogram(image_size.x, image_size.y);
 
@@ -127,7 +142,7 @@ void ScatterTest::run()
         float val = histogram(pixel.x, pixel.y) + weight;
         if (!std::isfinite(val))
         {
-            spdlog::error("Caught a NaN of Inf: {}; {}; {}; {}; {}", val, weight, pixel, dir, sin_theta);
+            spdlog::error("Caught a NaN or Inf: {}; {}; {}; {}; {}", val, weight, pixel, dir, sin_theta);
             nan_or_inf = true;
             continue;
         }
@@ -138,9 +153,12 @@ void ScatterTest::run()
     progress.set_done();
 
     // Step 2: Compute automatic exposure value as the 99.95th percentile instead of maximum for increased robustness
-    std::vector<float> values(&histogram(0, 0), &histogram(0, 0) + histogram.size());
-    std::sort(values.begin(), values.end());
-    max_value = values[int((histogram.size() - 1) * 0.9995)];
+    if (max_value < 0.f)
+    {
+        std::vector<float> values(&histogram(0, 0), &histogram(0, 0) + histogram.size());
+        std::sort(values.begin(), values.end());
+        max_value = values[int((histogram.size() - 1) * 0.9995)];
+    }
 
     // Now upscale our histogram and pdf
     Array2d<float> histo_upsampled = upsample(histogram, up_samples);
@@ -149,6 +167,7 @@ void ScatterTest::run()
     // NOTE: we use get_file_resolver()[0] here to refer to the parent directory of the scene file.
     // This assumes that the calling code has prepended this directory to the front of the global resolver list
     generate_heatmap(histo_upsampled, 1.f / max_value).save((get_file_resolver()[0] / (name + "-sampled.png")).str());
+    generate_graymap(histo_upsampled).save((get_file_resolver()[0] / (name + "-sampled.exr")).str());
 
     uint64_t percent_valid = (valid_samples * 100) / total_samples;
     auto     percent_msg =
@@ -170,11 +189,6 @@ SampleTest::SampleTest(const json &j) : ScatterTest(j)
 
 void SampleTest::run()
 {
-    // build the histogram and auto-exposure value
-    ScatterTest::run();
-
-    // additionally compute the analytic PDF image
-
     // Step 1: Evaluate pdf over the sphere and compute its integral
     pcg32          rng;
     double         integral = 0.0f;
@@ -200,6 +214,14 @@ void SampleTest::run()
         }
     progress1.set_done();
 
+    // Step 2: Compute automatic exposure value as the 99.95th percentile instead of maximum for increased robustness
+    if (max_value < 0.f)
+    {
+        std::vector<float> values(&pdf(0, 0), &pdf(0, 0) + pdf.size());
+        std::sort(values.begin(), values.end());
+        max_value = values[int((pdf.size() - 1) * 0.9995)];
+    }
+
     // Now upscale our histogram and pdf
     Array2d<float> pdf_upsampled = upsample(pdf, up_samples);
 
@@ -207,12 +229,16 @@ void SampleTest::run()
     // NOTE: we use get_file_resolver()[0] here to refer to the parent directory of the scene file.
     // This assumes that the calling code has prepended this directory to the front of the global resolver list
     generate_heatmap(pdf_upsampled, 1.f / max_value).save((get_file_resolver()[0] / (name + "-pdf.png")).str());
+    generate_graymap(pdf_upsampled).save((get_file_resolver()[0] / (name + "-pdf.exr")).str());
 
     // Output statistics
     auto integral_msg = fmt::format("Integral of PDF (should be close to 1): {}", integral);
     if (integral > 1.01f || integral < 0.90f)
         throw DartsException(integral_msg.c_str());
     spdlog::info(integral_msg);
+
+    // Step 3: build the histogram
+    ScatterTest::run();
 }
 
 /**

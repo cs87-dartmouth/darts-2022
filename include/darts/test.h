@@ -18,7 +18,8 @@ struct Test
 
         This is where all the work happens. Derived classes should override this function.
     */
-    virtual void run() = 0;
+    virtual void run()                = 0;
+    virtual void print_header() const = 0;
 };
 
 /// Check if this json object contains tests, and run them
@@ -30,6 +31,7 @@ struct ScatterTest : public Test
 
     virtual void run() override;
     virtual bool sample(Vec3f &dir, const Vec2f &rv, float rv1) = 0;
+    virtual void print_header() const override;
     virtual void print_more_statistics()
     {
     }
@@ -38,7 +40,7 @@ struct ScatterTest : public Test
     Vec2i    image_size;
     uint64_t total_samples;
     uint32_t up_samples;
-    float    max_value;
+    float    max_value = -1.f;
 };
 
 struct SampleTest : public ScatterTest
