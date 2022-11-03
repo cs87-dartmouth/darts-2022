@@ -111,10 +111,8 @@ jobs:
           ./build/${{ matrix.config.buildtype }}/darts_tutorial0${{matrix.ext}}   # change this or add to it as we progress through the assignments
           ./build/${{ matrix.config.buildtype }}/darts_tutorial1${{matrix.ext}}
           ./build/${{ matrix.config.buildtype }}/darts${{matrix.ext}} --help
+          ./build/${{ matrix.config.buildtype }}/nanovdb_test${{env.ext}}
         # ./build/${{ matrix.config.buildtype }}/point_gen${{env.ext}}
-        # mkdir build/${{ matrix.config.buildtype }}/data
-        # cd build/${{ matrix.config.buildtype }}
-        # ./nanovdb_test${{env.ext}}
 
       # - name: Comparing generated images against reference
       #   working-directory: ${{github.workspace}}
@@ -130,11 +128,11 @@ jobs:
       #     ../_deps/flip-build/flip -et -c diff.csv -t 01_manual_ray_image.png -r 01_manual_ray_image-ref.png
       #     ../_deps/flip-build/flip -et -c diff.csv -t 01_recursive_raytracing.png -r 01_recursive_raytracing-ref.png
 
-      # - name: Check NanoVDB file existence
-      #   id: check_files
-      #   uses: andstor/file-existence-action@v1
-      #   with:
-      #     files: "./build/data/primitives.nvdb"
+      - name: Check NanoVDB file existence
+        id: check_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "./primitives.nvdb"
 
       # - name: NanoVDB File exists
       #   if: steps.check_files.outputs.files_exists == 'true'

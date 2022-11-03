@@ -193,7 +193,7 @@ Vec2<T> direction_to_equirectangular_range(const Vec3<T> &dir, const Vec4<T> &ra
     if (la::all(la::equal(dir, T(0))))
         return Vec2<T>(0, 0);
 
-    return {(atan2(dir.y, dir.x) - range.y) / range.x, (theta(dir) - range.w) / range.z};
+    return {(std::atan2(dir.y, dir.x) - range.y) / range.x, (theta(dir) - range.w) / range.z};
 }
 
 template <typename T>

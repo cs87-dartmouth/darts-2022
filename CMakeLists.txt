@@ -137,3 +137,8 @@ add_executable(img_avg src/img_avg.cpp)
 target_link_libraries(img_avg PRIVATE darts_lib)
 
 
+if(USE_NANOVDB)
+  add_executable(nanovdb_test src/nanovdb_test.cpp)
+  target_link_libraries(nanovdb_test PRIVATE darts_lib nanovdb)
+endif(USE_NANOVDB)
+
