@@ -10,6 +10,7 @@
 #include <darts/common.h>
 #include <darts/math.h>
 
+
 /// An image with a generic pixel type
 template <typename T>
 class Image : public Array2d<T>

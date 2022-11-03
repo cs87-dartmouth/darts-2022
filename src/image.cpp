@@ -96,7 +96,7 @@ bool load(const string &filename, bool raw, Image<Color<N, float>> &image)
         bool   is_HDR     = stbi_is_hdr(filename.c_str());
         if (float_data)
         {
-            image.resize(w, h);
+            image.resize({w, h});
             // copy pixels over to the Image
             for (auto y : range(h))
             {
@@ -130,7 +130,7 @@ bool load(const string &filename, bool raw, Image<Color<N, float>> &image)
 
         if (ret == TINYEXR_SUCCESS)
         {
-            image.resize(w, h);
+            image.resize({w, h});
 
             // copy pixels over to the Image
             for (auto y : range(h))
@@ -175,7 +175,7 @@ bool save(const string &filename, float gain, const Image<Color<N, float>> &buff
         std::vector<float> images[N];
         for (auto i : range(N))
         {
-            images[i].resize(buffer.size());
+            images[i].resize(buffer.length());
             for (auto j : range(images[i].size()))
                 images[i][j] = buffer(j)[i];
         }
@@ -235,7 +235,7 @@ bool save(const string &filename, float gain, const Image<Color<N, float>> &buff
     else
     {
         // convert floating-point image to 8-bit per channel
-        vector<uint8_t> data(buffer.size() * N, 0);
+        vector<uint8_t> data(buffer.length() * N, 0);
         for (auto y : range(buffer.height()))
             for (auto x : range(buffer.width()))
             {

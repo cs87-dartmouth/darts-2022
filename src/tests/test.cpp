@@ -137,7 +137,7 @@ void ScatterTest::run()
 
         // Incorporate Jacobian of spherical mapping and bin area into the sample weight
         float sin_theta = std::max(1e-8f, std::sqrt(max(1.0f - dir.z * dir.z, 0.0f)));
-        float weight    = (histogram.size()) / (M_PI * (2.0f * M_PI) * total_samples * sin_theta);
+        float weight    = (histogram.length()) / (M_PI * (2.0f * M_PI) * total_samples * sin_theta);
         // Accumulate into histogram
         float val = histogram(pixel.x, pixel.y) + weight;
         if (!std::isfinite(val))
@@ -155,9 +155,9 @@ void ScatterTest::run()
     // Step 2: Compute automatic exposure value as the 99.95th percentile instead of maximum for increased robustness
     if (max_value < 0.f)
     {
-        std::vector<float> values(&histogram(0, 0), &histogram(0, 0) + histogram.size());
+        std::vector<float> values(&histogram(0, 0), &histogram(0, 0) + histogram.length());
         std::sort(values.begin(), values.end());
-        max_value = values[int((histogram.size() - 1) * 0.9995)];
+        max_value = values[int((histogram.length() - 1) * 0.9995)];
     }
 
     // Now upscale our histogram and pdf
@@ -217,9 +217,9 @@ void SampleTest::run()
     // Step 2: Compute automatic exposure value as the 99.95th percentile instead of maximum for increased robustness
     if (max_value < 0.f)
     {
-        std::vector<float> values(&pdf(0, 0), &pdf(0, 0) + pdf.size());
+        std::vector<float> values(&pdf(0, 0), &pdf(0, 0) + pdf.length());
         std::sort(values.begin(), values.end());
-        max_value = values[int((pdf.size() - 1) * 0.9995)];
+        max_value = values[int((pdf.length() - 1) * 0.9995)];
     }
 
     // Now upscale our histogram and pdf

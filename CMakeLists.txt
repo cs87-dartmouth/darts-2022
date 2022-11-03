@@ -20,6 +20,13 @@ list(
   APPEND
   darts_lib_SOURCES
   # cmake-format: off
+  # Additional files for PA6 below
+  include/darts/medium.h
+  include/darts/photon.h
+  include/darts/point_kdtree.h
+  src/photon.cpp
+  src/media/homogeneous.cpp
+  src/media/vacuum.cpp
   # Additional files for PA5 below
   src/tests/surface_sample_test.cpp
   # Additional files for PA4 below
@@ -81,6 +88,11 @@ list(
   # cmake-format: on
 )
 
+
+# Additional files for A6 below
+if(USE_NANOVDB)
+  list(APPEND darts_lib_SOURCES src/media/nanovdb_medium.cpp)
+endif(USE_NANOVDB)
 
 add_library(darts_lib OBJECT ${darts_lib_SOURCES})
 

@@ -42,17 +42,19 @@ class SceneWriter:
                  use_bump_maps,
                  force_two_sided,
                  enable_background,
-                 enable_mapping,
+                 enable_blackbody,
+                 enable_brick,
+                 enable_checker,
+                 enable_coord,
                  enable_fresnel,
                  enable_layer_weight,
+                 enable_mapping,
+                 enable_musgrave,
                  enable_mix_rgb,
                  enable_noise,
-                 enable_checker,
-                 enable_brick,
-                 enable_blackbody,
+                 enable_voronoi,
                  enable_wave,
-                 enable_wavelength,
-                 enable_coord):
+                 enable_wavelength):
         self.context = context
         self.report = report
 
@@ -81,6 +83,8 @@ class SceneWriter:
         self.enable_layer_weight = enable_layer_weight
         self.enable_mix_rgb = enable_mix_rgb
         self.enable_noise = enable_noise
+        self.enable_musgrave = enable_musgrave
+        self.enable_voronoi = enable_voronoi
         self.enable_checker = enable_checker
         self.enable_brick = enable_brick
         self.enable_blackbody = enable_blackbody

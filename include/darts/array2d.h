@@ -5,6 +5,7 @@
 */
 #pragma once
 
+#include <darts/math.h>
 #include <utility>
 #include <vector>
 
@@ -34,73 +35,56 @@ public:
     /// Convert the 2d index into a linear index
     int index_1d(int x, int y) const
     {
-        return y * m_size_x + x;
+        return y * m_size.x + x;
     }
 
     /// Convert the 1d index into a 2d index
     std::pair<int, int> index_2d(int i) const
     {
-        return std::make_pair(i % m_size_x, i / m_size_x);
+        return std::make_pair(i % m_size.x, i / m_size.x);
     }
 
     ///\{ \name Dimension sizes
-    int width() const
-    {
-        return m_size_x;
-    } ///< size of first dimension
-    int height() const
-    {
-        return m_size_y;
-    } ///< size of second dimension
-
-    int size() const
-    {
-        return m_size_x * m_size_y;
-    } ///< total number of elements
-    int size_x() const
-    {
-        return m_size_x;
-    } ///< size of first dimension
-    int size_y() const
-    {
-        return m_size_y;
-    } ///< size of first dimension
+    // clang-format off
+    int   width() const  {return m_size.x;}             ///< size of first dimension
+    int   height() const {return m_size.y;}             ///< size of second dimension
+    Vec2i size() const   {return m_size;}               ///< size along both directions
+    int   length() const {return m_size.x * m_size.y;}  ///< total number of elements
+    // clang-format on
     ///\}
 
-    void resize(int size_x, int size_y); ///< Resize to `size_x` x `size_y`
-    void reset(const T &value = T(0));   ///< Set all elements to `value`
-    void operator=(const T &);           ///< Set all elements to `value`
+    void resize(const Vec2i &size);    ///< Resize to (size.x) x (size.y)
+    void reset(const T &value = T(0)); ///< Set all elements to `value`
+    void operator=(const T &);         ///< Set all elements to `value`
 
 protected:
-    std::vector<T> m_data;   ///< the data
-    int            m_size_x; ///< size of first dimension
-    int            m_size_y; ///< size of second dimension
+    std::vector<T> m_data; ///< the data
+    Vec2i          m_size; ///< size along both directions
 };
 
 template <typename T>
-inline Array2d<T>::Array2d() : m_data(0), m_size_x(0), m_size_y(0)
+inline Array2d<T>::Array2d() : m_data(0), m_size(0, 0)
 {
     // empty
 }
 
 template <typename T>
 inline Array2d<T>::Array2d(int size_x, int size_y, const T &value) :
-    m_data(size_x * size_y, value), m_size_x(size_x), m_size_y(size_y)
+    m_data(size_x * size_y, value), m_size(size_x, size_y)
 {
     // empty
 }
 
 template <class T>
-Array2d<T>::Array2d(const Array2d<T> &other) : m_data(other.m_data), m_size_x(other.m_size_x), m_size_y(other.m_size_y)
+Array2d<T>::Array2d(const Array2d<T> &other) : m_data(other.m_data), m_size(other.m_size)
 {
 }
 
 template <class T>
 Array2d<T> &Array2d<T>::operator=(const Array2d<T> &other)
 {
-    m_size_x = other.m_size_x;
-    m_size_y = other.m_size_y;
-    m_data   = other.m_data;
+    m_size = other.m_size;
+    m_data = other.m_data;
     return *this;
 }
 
@@ -165,22 +149,20 @@ inline const T *Array2d<T>::row(int y) const
 }
 
 template <typename T>
-inline void Array2d<T>::resize(int size_x, int size_y)
+inline void Array2d<T>::resize(const Vec2i &size)
 {
-    if (size_x == m_size_x && size_y == m_size_y)
+    if (size == m_size)
         return;
 
-    m_data.resize(size_x * size_y);
-    m_size_x = size_x;
-    m_size_y = size_y;
+    m_data.resize(size.x * size.y);
+    m_size = size;
 }
 
 template <typename T>
 inline void Array2d<T>::reset(const T &value)
 {
-    int size = m_size_x * m_size_y;
-    for (int i = 0; i < size; i++)
-        m_data[i] = value;
+    for (auto &e : m_data)
+        e = value;
 }
 
 template <typename T>

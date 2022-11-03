@@ -186,6 +186,37 @@ Vec2<T> direction_to_spherical_coordinates(const Vec3<T> &v)
     return {phi(v), theta(v)};
 }
 
+
+template <typename T>
+Vec2<T> direction_to_equirectangular_range(const Vec3<T> &dir, const Vec4<T> &range)
+{
+    if (la::all(la::equal(dir, T(0))))
+        return Vec2<T>(0, 0);
+
+    return {(atan2(dir.y, dir.x) - range.y) / range.x, (theta(dir) - range.w) / range.z};
+}
+
+template <typename T>
+Vec3<T> equirectangular_range_to_direction(const Vec2<T> &uv, const Vec4<T> &range)
+{
+    auto [sin_theta, cos_theta] = sincos(range.z * uv.y + range.w);
+    auto [sin_phi, cos_phi]     = sincos(range.x * uv.x + range.y);
+    return Vec3<T>{sin_theta * cos_phi, sin_theta * sin_phi, cos_theta};
+}
+
+template <typename T>
+Vec2<T> direction_to_equirectangular(const Vec3<T> &dir)
+{
+    return direction_to_equirectangular_range(dir, Vec4<T>{-2 * M_PI, M_PI, -M_PI, M_PI});
+}
+
+template <typename T>
+Vec3<T> equirectangular_to_direction(const Vec2<T> &uv)
+{
+    return equirectangular_range_to_direction(uv, Vec4<T>(-2 * M_PI, M_PI, -M_PI, M_PI));
+}
+
+
 } // namespace Spherical
 
 /** @}*/

@@ -424,7 +424,7 @@ void test_sphere_image()
     // Set up a camera with some reasonable parameters
     Camera camera({
         {"vfov", 90.f},
-        {"resolution", Vec2i(ray_image.size_x(), ray_image.size_y())},
+        {"resolution", ray_image.size()},
         {"fdist", 1.f},
         {"transform", {{"from", {5.0f, 15.0f, -25.0f}}, {"to", {0.0f, 0.0f, 0.0f}}, {"up", {0.0f, 1.0f, 0.0f}}}},
     });
@@ -589,7 +589,7 @@ void test_recursive_raytracing()
     // Set up a camera with some reasonable parameters
     Camera camera({
         {"vfov", 45.f},
-        {"resolution", Vec2i(ray_image.size_x(), ray_image.size_y())},
+        {"resolution", ray_image.size()},
         {"fdist", 1.f},
         {"transform", {{"from", {1.9f, 0.8f, -3.5f}}, {"to", {1.9f, 0.8f, 0.0f}}, {"up", {0.0f, 1.0f, 0.0f}}}},
     });
@@ -609,7 +609,7 @@ void test_recursive_raytracing()
     scene.add_child(ground_sphere);
 
     {
-        Progress progress("Rendering", ray_image.size());
+        Progress progress("Rendering", ray_image.length());
         // Generate a ray for each pixel in the ray image
         for (auto y : range(ray_image.height()))
         {

@@ -21,7 +21,7 @@ from bpy_extras.io_utils import ExportHelper
 bl_info = {
     "name": "Darts",
     "author": "Wojciech Jarosz, Baptiste Nicolet, Shaojie Jiao, Adrien Gruson, Delio Vicini, Tizian Zeltner",
-    "version": (0, 2, 8),
+    "version": (0, 2, 9),
     "blender": (2, 80, 0),
     "location": "File > Export > Darts exporter (.json)",
     "description": "Export Darts scene format (.json)",
@@ -183,6 +183,16 @@ class DartsExporter(bpy.types.Operator, ExportHelper):
     enable_noise: BoolProperty(
         name="Noise",
         description="Convert Blender Noise Texture shader to a Darts 'noise' texture. When disabled, Noise textures are converted to a fixed 0.5",
+        default=True,
+    )
+    enable_musgrave: BoolProperty(
+        name="Musgrave",
+        description="Convert Blender Musgrave Texture shader to a Darts 'musgrave' texture. When disabled, Musgrave textures are converted to a fixed 0.5",
+        default=True,
+    )
+    enable_voronoi: BoolProperty(
+        name="Voronoi",
+        description="Convert Blender Voronoi Texture shader to a Darts 'voronoi' texture. When disabled, Voronoi textures are converted to a fixed 0.5",
         default=True,
     )
     enable_checker: BoolProperty(
@@ -378,6 +388,8 @@ class DARTS_PT_export_textures(bpy.types.Panel):
         sublayout.prop(operator, 'enable_mapping')
         sublayout.prop(operator, "enable_mix_rgb")
         sublayout.prop(operator, "enable_noise")
+        sublayout.prop(operator, "enable_musgrave")
+        sublayout.prop(operator, "enable_voronoi")
         sublayout.prop(operator, 'enable_wave')
         sublayout.prop(operator, 'enable_wavelength')
 

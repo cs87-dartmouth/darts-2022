@@ -222,12 +222,13 @@ Range<T> range(T end)
     return Range<T>(T(0), end, T(1));
 }
 
-/// Construct a Python-style range from \p start, up to but excluding \p end, in incremenents of \p step
+/// Construct a Python-style range from \p start, up to but excluding \p end, in increments of \p step
 template <typename T>
 Range<T> range(T start, T end, T step = T(1))
 {
     return Range<T>(start, end, step);
 }
+
 
 /**
     Return the global file resolver instance.

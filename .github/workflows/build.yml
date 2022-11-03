@@ -82,13 +82,13 @@ jobs:
         working-directory: ${{github.workspace}}
         if: runner.os != 'Windows'
         run: |
-          cmake -B ${{github.workspace}}/build/${{ matrix.config.buildtype }} -G Ninja -DUSE_FLIP:BOOL=TRUE -DCMAKE_BUILD_TYPE=${{ matrix.config.buildtype }} -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          cmake -B ${{github.workspace}}/build/${{ matrix.config.buildtype }} -G Ninja -DUSE_FLIP:BOOL=TRUE -DUSE_NANOVDB:BOOL=TRUE -DCMAKE_BUILD_TYPE=${{ matrix.config.buildtype }} -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Configure CMake (Windows)
         working-directory: ${{github.workspace}}
         if: runner.os == 'Windows'
         run: |
-          cmake -B ${{github.workspace}}/build -DUSE_FLIP:BOOL=TRUE -DCMAKE_BUILD_TYPE=${{ matrix.config.buildtype }}
+          cmake -B ${{github.workspace}}/build -DUSE_FLIP:BOOL=TRUE -DUSE_NANOVDB:BOOL=TRUE -DCMAKE_BUILD_TYPE=${{ matrix.config.buildtype }}
 
       - name: Build
         shell: bash

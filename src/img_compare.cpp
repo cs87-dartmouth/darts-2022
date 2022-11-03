@@ -85,7 +85,7 @@ The default is 2 (info).)")
                 diff(x, y) = d * multiplier;
             }
 
-        mad /= diff.size();
+        mad /= diff.length();
 
         float scalar_mad = sum(mad) / 3.f;
 

@@ -126,6 +126,10 @@ def export_texture(ctx, image):
 
 
 def convert_image_texture_node(ctx, out_socket):
+    '''
+    Python API: https://docs.blender.org/api/3.3/bpy.types.ShaderNodeTexImage.html
+    User docs: https://docs.blender.org/manual/en/latest/render/shader_nodes/textures/image.html
+    '''
     node = out_socket.node
     params = {
         'type': 'image'
@@ -167,6 +171,10 @@ def convert_image_texture_node(ctx, out_socket):
 
 
 def convert_checker_texture_node(ctx, out_socket):
+    '''
+    Python API: https://docs.blender.org/api/3.3/bpy.types.ShaderNodeTexChecker.html
+    User docs: https://docs.blender.org/manual/en/latest/render/shader_nodes/textures/checker.html
+    '''
     if not ctx.enable_checker:
         return dummy_color(ctx)
 
@@ -187,6 +195,10 @@ def convert_checker_texture_node(ctx, out_socket):
 
 
 def convert_brick_texture_node(ctx, out_socket):
+    '''
+    Python API: https://docs.blender.org/api/3.3/bpy.types.ShaderNodeTexBrick.html
+    User docs: https://docs.blender.org/manual/en/latest/render/shader_nodes/textures/brick.html
+    '''
     if not ctx.enable_brick:
         return dummy_color(ctx)
 
@@ -214,6 +226,10 @@ def convert_brick_texture_node(ctx, out_socket):
 
 
 def convert_wave_texture_node(ctx, out_socket):
+    '''
+    Python API: https://docs.blender.org/api/3.3/bpy.types.ShaderNodeTexWave.html
+    User docs: https://docs.blender.org/manual/en/latest/render/shader_nodes/textures/wave.html
+    '''
     if not ctx.enable_wave:
         return ctx.color(0.5)
 
@@ -238,6 +254,10 @@ def convert_wave_texture_node(ctx, out_socket):
 
 
 def convert_noise_texture_node(ctx, out_socket):
+    '''
+    Python API: https://docs.blender.org/api/3.3/bpy.types.ShaderNodeTexNoise.html
+    User docs: https://docs.blender.org/manual/en/latest/render/shader_nodes/textures/noise.html
+    '''
     if not ctx.enable_noise:
         return ctx.color(0.5)
 
@@ -262,7 +282,71 @@ def convert_noise_texture_node(ctx, out_socket):
     return params
 
 
+def convert_voronoi_texture_node(ctx, out_socket):
+    '''
+    Python API: https://docs.blender.org/api/3.3/bpy.types.ShaderNodeTexVoronoi.html
+    User docs: https://docs.blender.org/manual/en/latest/render/shader_nodes/textures/voronoi.html
+    '''
+    if not ctx.enable_voronoi:
+        return ctx.color(0.5)
+
+    node = out_socket.node
+    dims = {"1D": 1, "2D": 2, "3D": 3, "4D": 4}
+    params = {
+        'type': 'voronoi',
+        'scale': convert_texture_node(ctx, node.inputs['Scale']),
+        'randomness': convert_texture_node(ctx, node.inputs['Randomness']),
+        'dimensions': dims[node.voronoi_dimensions],
+        'feature': node.feature.lower().replace('_', ' '),
+        'distance': node.distance.lower(),
+        'output': out_socket.name.lower()
+    }
+
+    if dims[node.voronoi_dimensions] == 4:
+        params['w'] = convert_texture_node(ctx, node.inputs['W'])
+
+    add_vector_node_field(ctx,
+                          params, node.inputs['Vector'] if dims[node.voronoi_dimensions] != 1 else node.inputs['W'])
+
+    return params
+
+
+def convert_musgrave_texture_node(ctx, out_socket):
+    '''
+    Python API: https://docs.blender.org/api/3.3/bpy.types.ShaderNodeTexMusgrave.html
+    User docs: https://docs.blender.org/manual/en/latest/render/shader_nodes/textures/musgrave.html
+    '''
+    if not ctx.enable_musgrave:
+        return ctx.color(0.5)
+
+    node = out_socket.node
+    dims = {"1D": 1, "2D": 2, "3D": 3, "4D": 4}
+    params = {
+        'type': 'musgrave',
+        'fractal type': node.musgrave_type.lower().replace('_', ' '),
+        'scale': convert_texture_node(ctx, node.inputs['Scale']),
+        'detail': convert_texture_node(ctx, node.inputs['Detail']),
+        'dimension': convert_texture_node(ctx, node.inputs['Dimension']),
+        'lacunarity': convert_texture_node(ctx, node.inputs['Lacunarity']),
+        'offset': convert_texture_node(ctx, node.inputs['Offset']),
+        'gain': convert_texture_node(ctx, node.inputs['Gain']),
+        'dimensions': dims[node.noise_dimensions]
+    }
+
+    if dims[node.noise_dimensions] == 4:
+        params['w'] = convert_texture_node(ctx, node.inputs['W'])
+
+    add_vector_node_field(ctx,
+                          params, node.inputs['Vector'] if dims[node.noise_dimensions] != 1 else node.inputs['W'])
+
+    return params
+
+
 def convert_layer_weight_node(ctx, out_socket):
+    '''
+    Python API: https://docs.blender.org/api/3.3/bpy.types.ShaderNodeLayerWeight.html
+    User docs: https://docs.blender.org/manual/en/latest/render/shader_nodes/input/layer_weight.html
+    '''
     if not ctx.enable_layer_weight:
         return ctx.color(0.5)
 
@@ -287,6 +371,10 @@ def convert_layer_weight_node(ctx, out_socket):
 
 
 def convert_mix_rgb_node(ctx, out_socket):
+    '''
+    Python API: https://docs.blender.org/api/3.3/bpy.types.ShaderNodeLayerWeight.html
+    User docs: https://docs.blender.org/manual/en/latest/render/shader_nodes/input/layer_weight.html
+    '''
     if not ctx.enable_mix_rgb:
         return dummy_color(ctx)
 
@@ -301,6 +389,10 @@ def convert_mix_rgb_node(ctx, out_socket):
 
 
 def convert_clamp_node(ctx, out_socket):
+    '''
+    Python API: https://docs.blender.org/api/3.3/bpy.types.ShaderNodeClamp.html
+    User docs: https://docs.blender.org/manual/en/latest/render/shader_nodes/converter/clamp.html
+    '''
     # if not ctx.enable_mix_rgb:
     #     return dummy_color(ctx)
 
@@ -315,6 +407,10 @@ def convert_clamp_node(ctx, out_socket):
 
 
 def convert_fresnel_node(ctx, out_socket):
+    '''
+    Python API: https://docs.blender.org/api/3.3/bpy.types.ShaderNodeFresnel.html
+    User docs: https://docs.blender.org/manual/en/latest/render/shader_nodes/input/fresnel.html
+    '''
     if not ctx.enable_fresnel:
         return ctx.color(0.5)
 
@@ -330,11 +426,19 @@ def convert_fresnel_node(ctx, out_socket):
 
 
 def convert_rgb_node(ctx, out_socket):
+    '''
+    Python API: https://docs.blender.org/api/3.3/bpy.types.ShaderNodeRGB.html
+    User docs: https://docs.blender.org/manual/en/latest/render/shader_nodes/input/rgb.html
+    '''
     node = out_socket.node
     return ctx.color(node.color)
 
 
 def convert_blackbody_node(ctx, out_socket):
+    '''
+    Python API: https://docs.blender.org/api/3.3/bpy.types.ShaderNodeBlackbody.html
+    User docs: https://docs.blender.org/manual/en/latest/render/shader_nodes/converter/blackbody.html
+    '''
     if not ctx.enable_blackbody:
         return dummy_color(ctx)
 
@@ -346,6 +450,10 @@ def convert_blackbody_node(ctx, out_socket):
 
 
 def convert_wavelength_node(ctx, out_socket):
+    '''
+    Python API: https://docs.blender.org/api/3.3/bpy.types.ShaderNodeWavelength.html
+    User docs: https://docs.blender.org/manual/en/latest/render/shader_nodes/converter/wavelength.html
+    '''
     if not ctx.enable_wavelength:
         return dummy_color(ctx)
 
@@ -372,20 +480,21 @@ def convert_coord_texture_node(ctx, out_socket):
 
 def convert_texture_node(ctx, socket):
     texture_converters = {
-        "ShaderNodeTexImage": convert_image_texture_node,
-        'ShaderNodeFresnel': convert_fresnel_node,
-        'ShaderNodeLayerWeight': convert_layer_weight_node,
-        'ShaderNodeMixRGB': convert_mix_rgb_node,
-        'ShaderNodeClamp': convert_clamp_node,
-        'ShaderNodeRGB': convert_rgb_node,
-        'ShaderNodeTexNoise': convert_noise_texture_node,
-        'ShaderNodeTexChecker': convert_checker_texture_node,
-        'ShaderNodeTexBrick': convert_brick_texture_node,
-        'ShaderNodeTexWave': convert_wave_texture_node,
         'ShaderNodeBlackbody': convert_blackbody_node,
-        'ShaderNodeWavelength': convert_wavelength_node,
+        'ShaderNodeTexBrick': convert_brick_texture_node,
+        'ShaderNodeClamp': convert_clamp_node,
         'ShaderNodeTexCoord': convert_coord_texture_node,
         'ShaderNodeMapping': convert_coord_texture_node,
+        'ShaderNodeFresnel': convert_fresnel_node,
+        "ShaderNodeTexImage": convert_image_texture_node,
+        'ShaderNodeLayerWeight': convert_layer_weight_node,
+        'ShaderNodeMixRGB': convert_mix_rgb_node,
+        'ShaderNodeTexMusgrave': convert_musgrave_texture_node,
+        'ShaderNodeTexNoise': convert_noise_texture_node,
+        'ShaderNodeRGB': convert_rgb_node,
+        'ShaderNodeTexVoronoi': convert_voronoi_texture_node,
+        'ShaderNodeTexWave': convert_wave_texture_node,
+        'ShaderNodeWavelength': convert_wavelength_node,
     }
 
     params = None
