@@ -45,10 +45,32 @@ void run_tests(const json &j)
     }
 }
 
-namespace
-{
 
-Image3f generate_heatmap(const Array2d<float> &density, float scale = 1.f)
+ScatterTest::ScatterTest(const json &j)
+{
+    name          = j.at("name");
+    image_size    = j.value("image size", image_size);
+    total_samples = j.value("spp", 1000) * product(image_size);
+    up_samples    = j.value("up samples", up_samples);
+}
+
+void ScatterTest::print_header() const
+{
+    fmt::print("---------------------------------------------------------------------------\n");
+    fmt::print("Running test for \"{}\"\n", name);
+}
+
+Vec2f ScatterTest::sample_to_pixel(const Vec3f &dir) const
+{
+    return Spherical::direction_to_spherical_coordinates(dir) * image_size * Vec2f{INV_TWOPI, INV_PI};
+}
+
+Vec3f ScatterTest::pixel_to_sample(const Vec2f &pixel) const
+{
+    return Spherical::spherical_coordinates_to_direction(pixel * Vec2f{2 * M_PI, M_PI} / image_size);
+}
+
+Image3f ScatterTest::generate_heatmap(const Array2d<float> &density, float scale)
 {
     Image3f result(density.width(), density.height());
 
@@ -59,7 +81,7 @@ Image3f generate_heatmap(const Array2d<float> &density, float scale = 1.f)
     return result;
 }
 
-Image3f generate_graymap(const Array2d<float> &density, float scale = 1.f)
+Image3f ScatterTest::generate_graymap(const Array2d<float> &density, float scale)
 {
     Image3f result(density.width(), density.height());
 
@@ -70,40 +92,13 @@ Image3f generate_graymap(const Array2d<float> &density, float scale = 1.f)
     return result;
 }
 
-Array2d<float> upsample(const Array2d<float> &img, int factor)
+Array2d<float> ScatterTest::upsample(const Array2d<float> &img, int factor)
 {
     Array2d<float> upsampled(img.width() * factor, img.height() * factor);
     for (int y = 0; y < upsampled.height(); ++y)
         for (int x = 0; x < upsampled.width(); ++x)
             upsampled(x, y) = img(x / factor, y / factor);
     return upsampled;
-}
-
-Vec2i direction_to_pixel(const Vec3f &dir, const Array2d<float> &img)
-{
-    return Vec2i{Spherical::direction_to_spherical_coordinates(dir) *
-                 Vec2f{img.width() * INV_TWOPI, img.height() * INV_PI}};
-}
-
-Vec3f pixel_to_direction(const Vec2f &pixel, const Array2d<float> &img)
-{
-    return Spherical::spherical_coordinates_to_direction(pixel * Vec2f{2 * M_PI / img.width(), M_PI / img.height()});
-}
-
-} // namespace
-
-ScatterTest::ScatterTest(const json &j)
-{
-    name          = j.at("name");
-    image_size    = {j.value("image width", 256), j.value("image height", 128)};
-    total_samples = j.value("spp", 1000) * product(image_size);
-    up_samples    = j.value("up samples", 4);
-}
-
-void ScatterTest::print_header() const
-{
-    fmt::print("---------------------------------------------------------------------------\n");
-    fmt::print("Running test for \"{}\"\n", name);
 }
 
 void ScatterTest::run()
@@ -131,7 +126,7 @@ void ScatterTest::run()
         }
 
         // Map scattered direction to pixel in our sample histogram
-        Vec2i pixel = direction_to_pixel(dir, histogram);
+        Vec2i pixel{sample_to_pixel(dir)};
         if (pixel.x < 0 || pixel.y < 0 || pixel.x >= histogram.width() || pixel.y >= histogram.height())
             continue;
 
@@ -201,8 +196,8 @@ void SampleTest::run()
             for (int sx = 0; sx < super_samples; ++sx)
                 for (int sy = 0; sy < super_samples; ++sy)
                 {
-                    Vec3f dir = pixel_to_direction(
-                        Vec2f{x + (sx + 0.5f) / super_samples, y + (sy + 0.5f) / super_samples}, pdf);
+                    Vec3f dir =
+                        pixel_to_sample(Vec2f{x + (sx + 0.5f) / super_samples, y + (sy + 0.5f) / super_samples});
                     float sin_theta = std::sqrt(max(1.0f - dir.z * dir.z, 0.0f));
                     float pixel_area =
                         (M_PI / super_samples) * (M_PI * 2.0f / super_samples) * sin_theta / product(image_size);

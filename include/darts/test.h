@@ -36,11 +36,18 @@ struct ScatterTest : public Test
     {
     }
 
+    virtual Vec2f sample_to_pixel(const Vec3f &dir) const;
+    virtual Vec3f pixel_to_sample(const Vec2f &pixel) const;
+
+    static Image3f        generate_heatmap(const Array2d<float> &density, float scale = 1.f);
+    static Image3f        generate_graymap(const Array2d<float> &density, float scale = 1.f);
+    static Array2d<float> upsample(const Array2d<float> &img, int factor);
+
     string   name;
-    Vec2i    image_size;
+    Vec2i    image_size{256, 128};
     uint64_t total_samples;
-    uint32_t up_samples;
-    float    max_value = -1.f;
+    uint32_t up_samples = 4;
+    float    max_value  = -1.f;
 };
 
 struct SampleTest : public ScatterTest
@@ -48,7 +55,7 @@ struct SampleTest : public ScatterTest
     SampleTest(const json &j);
 
     virtual void  run() override;
-    virtual float pdf(Vec3f &dir, float rv1) = 0;
+    virtual float pdf(const Vec3f &dir, float rv1) const = 0;
 
     uint32_t super_samples;
 };

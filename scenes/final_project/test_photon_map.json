@@ -1,0 +1,40 @@
+{
+    "type": "tests",
+    "tests": [
+        {
+            "type": "photon map",
+            "image size": [
+                128, 128
+            ],
+            "search radius": 0.1,
+            "search count": 150,
+            "spp": 100,
+            "transform": [
+                {
+                    "translate": [1, 1, 0]
+                }, {
+                    "scale": [0.5, 0.5, 1.0]
+                }
+            ],
+            "name": "photon-map-knn"
+        }, {
+            "type": "photon map",
+            "image size": [
+                128, 128
+            ],
+            "search radius": 0.01,
+            "search count": 0,
+            "spp": 100,
+            "transform": [
+                {
+                    "translate": [2, 1, 0]
+                }, {
+                    "scale": [0.4, 0.25, 1.0]
+                }, {
+                    "rotate": [35, 0, 0, 1]
+                }
+            ],
+            "name": "photon-map-fixed-radius"
+        }
+    ]
+}

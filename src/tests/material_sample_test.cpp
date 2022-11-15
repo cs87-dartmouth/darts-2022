@@ -17,7 +17,7 @@ struct MaterialSampleTest : public SampleTest
     MaterialSampleTest(const json &j);
 
     bool  sample(Vec3f &dir, const Vec2f &rv, float rv1) override;
-    float pdf(Vec3f &dir, float rv1) override;
+    float pdf(const Vec3f &dir, float rv1) const override;
     void  print_more_statistics() override;
 
     shared_ptr<Material> material;
@@ -63,7 +63,7 @@ bool MaterialSampleTest::sample(Vec3f &dir, const Vec2f &rv, float rv1)
     return true;
 }
 
-float MaterialSampleTest::pdf(Vec3f &dir, float rv1)
+float MaterialSampleTest::pdf(const Vec3f &dir, float rv1) const
 {
     return material->pdf(incoming, dir, hit);
 }

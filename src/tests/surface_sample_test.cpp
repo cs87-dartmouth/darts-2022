@@ -19,7 +19,7 @@ struct SurfaceSampleTest : public SampleTest
     SurfaceSampleTest(const json &j);
 
     bool  sample(Vec3f &dir, const Vec2f &rv, float rv1) override;
-    float pdf(Vec3f &dir, float rv1) override;
+    float pdf(const Vec3f &dir, float rv1) const override;
 
     shared_ptr<Surface> surface;
     Vec3f               normal;
@@ -51,10 +51,10 @@ bool SurfaceSampleTest::sample(Vec3f &dir, const Vec2f &rv, float rv1)
     return true;
 }
 
-float SurfaceSampleTest::pdf(Vec3f &dir, float rv1)
+float SurfaceSampleTest::pdf(const Vec3f &dir, float rv1) const
 {
     auto [child, prob] = surface->sample_child(rv1);
-    return child->pdf(Vec3f(0.f), dir);
+    return child->pdf(Vec3f{0.f}, dir);
 }
 
 DARTS_REGISTER_CLASS_IN_FACTORY(Test, SurfaceSampleTest, "sample surface")

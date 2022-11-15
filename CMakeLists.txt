@@ -27,6 +27,7 @@ list(
   src/photon.cpp
   src/media/homogeneous.cpp
   src/media/vacuum.cpp
+  src/tests/photon_map_test.cpp
   # Additional files for PA5 below
   src/tests/surface_sample_test.cpp
   # Additional files for PA4 below
